@@ -1,9 +1,13 @@
 import pandas as pd
 import networkx as nx
 
-from generator import Generator
+# For API server use:
+from .generator import Generator
+# For Jupyter use:
+# from generator import Generator
 
 def _read_tsv(path):
+    print('reading TSV:', path)
     return pd.read_csv(path, sep = '\t')
 
 class Datasets:
@@ -17,6 +21,14 @@ class Datasets:
         self.bdp = self._read_gcp('StandingSettlementInstructions', 'BANKDIRECTORYPLUS_V3_FULL_20200828.txt')
         self.edges = self._calc_edges(self.ssi, self.bdp)
         self.ssi_nx = self._calc_ssi_nx(self.edges)
+        
+        # todo: replace with BDP IDs used in _onboard_client
+        self.client_bdp_rk = 'BD0000000B8A'
+        self.destination_dbp_rks = [
+            'BD00000005G6',
+            'BD00000006O3',
+            'BD0000000HUQ',
+        ]
         self.with_client_ssi_nx = self._onboard_client(self.ssi, self.bdp)
     
     def _read_gcp(self, dir_name, file_name):
