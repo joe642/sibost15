@@ -3,6 +3,9 @@ import networkx as nx
 
 class Generator:
     
+    def __init__(self):
+        self.SEED = 100500
+    
     # smart things happen here !
     def generate_client_data(self, ssi, bdp):
         return pd.DataFrame({

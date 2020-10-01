@@ -3,6 +3,15 @@ from ariadne.asgi import GraphQL
 
 from dataclasses import dataclass
 
+import numpy as np
+import networkx as nx
+
+# For API server use:
+_data_dir = 'analytics/data'
+from .datasets import Datasets
+# For Jupyter use:
+# from datasets import Datasets
+# _data_dir = '../../data'
 
 # Schema    -------------------------------------------
 
@@ -20,6 +29,7 @@ sdl = gql("""
     }
 
     type Party {
+         bdp: String!
          bic: String! # 8chars typically
          name: String!
          countryCode: String!
@@ -106,6 +116,7 @@ class StaticData:
 
 @dataclass
 class Party:
+    bdp: object
     bic: object
     name: object
     countryCode: object
@@ -172,6 +183,7 @@ class MockResolvers:
     
     def _fb(self):
         return Party(
+            bdp = "BD0000000B8A",
             bic = "FOOBRBIC",
             name = "Foo Bar Corp.",
             countryCode = "FB",
@@ -266,9 +278,162 @@ class MockResolvers:
             ],
         )
 
+class DatasetsResolvers:
+    
+    def __init__(self, datasets = Datasets(_data_dir)):
+        self._d = datasets
+    
+    def _fb(self):
+        return Party(
+            bdp = "BD0000000B8A",
+            bic = "FOOBRBIC",
+            name = "Foo Bar Corp.",
+            countryCode = "FB",
+            countryName = "Foo Bar Republic",
+            city = "Fooburg",
+        )
+    
+    def _parties(self, df):
+        return list(df.apply(lambda x: Party(
+            bdp = x['RECORD KEY'],
+            bic = x['BIC'],
+            name = x['INSTITUTION NAME'],
+            countryCode = x['ISO COUNTRY CODE'],
+            countryName = x['COUNTRY NAME'],
+            city = x['CITY'],
+        ), axis = 1))
+    
+    def _parties_by_bdps(self, bdps):
+        return self._parties(self._d.bdp[
+            lambda x: x['RECORD KEY'].isin(bdps)
+        ])
+    
+    def _client_party(self):
+        return self._parties_by_bdps([ self._d.client_bdp_rk ])[0]
+
+    def _client_banks(self):
+        client_neighbors = nx.neighbors(self._d.ssi_nx, self._d.client_bdp_rk)
+        return self._parties_by_bdps(client_neighbors)
+
+    def _client_destinations(self):
+        party_and_account_numbers_df = self._d.ssi[[
+            'RECORD KEY BDP ACCOUNT HOLDING INSTITUTION',
+            # 'ISO CURRENCY CODE',
+            # 'ASSET CATEGORY',
+            'ACCOUNT NBR WITH ACCOUNT HOLDING INSTITUTION',
+        ]][
+            lambda x: x['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].isin(
+                self._d.destination_dbp_rks
+            )
+        ].drop_duplicates().rename(columns = {
+            'RECORD KEY BDP ACCOUNT HOLDING INSTITUTION' : 'RECORD KEY',
+        }).groupby('RECORD KEY').agg(list).reset_index().merge(
+            self._d.bdp[[
+                'RECORD KEY',
+                'BIC',
+                'INSTITUTION NAME',
+                'ISO COUNTRY CODE',
+                'COUNTRY NAME',
+                'CITY',
+            ]],
+            on = 'RECORD KEY',
+        )
+        parties = self._parties(party_and_account_numbers_df)
+        account_numbers = list(party_and_account_numbers_df[
+            'ACCOUNT NBR WITH ACCOUNT HOLDING INSTITUTION'
+        ])
+        return list(map(lambda row: Destination(
+            party = row[0],
+            accounts = list(filter(lambda x: x is not np.nan, row[1])),
+        ), zip(parties, account_numbers)))
+    
+    def _asset_categories(self):
+        return list(self._d.ssi['ASSET CATEGORY'].drop_duplicates())
+    
+    def staticData(self):
+        return StaticData(
+            origins = self._client_banks(),
+            destinations = self._client_destinations(),
+            assetCategories = self._asset_categories(),
+        )
+    
+    def routes(self, payment):
+        pmt = Payment(
+            originBic = "FOOBRBIC",
+            destinationBic = "FOOBRBIC",
+            assetCategory = "ANYY",
+            currency = "USD",
+            amount = 100_000,
+        )
+        return [
+            Route(
+                originalPayment = pmt,
+                hops = [
+                    Hop(
+                        source = self._fb(),
+                        target = self._fb(),
+                        payment = pmt,
+                        fxRate = 1.23,
+                        timeTakenMinutes = round(1.25 * 24 * 60),
+                        crossBorder = True,
+                    ),
+                ],
+                risk = "MD",
+                totalFee = 10_000,
+                totalTimeMinutes = round(1.25 * 24 * 60),
+            ),
+        ]
+    
+    def stats(self):
+        return Stats(
+            summary = Summary(
+                 totalVolume = 100_000_000,
+                 averageTimeMinutes = round(1.65 * 24 * 60),
+                 pctFailures = 0.03,
+            ),
+            map = [
+                MapEdge(
+                    sourceCity = "Singapore",
+                    targetCity = "New York",
+                    weight = 100,
+                ),
+                MapEdge(
+                    sourceCity = "London",
+                    targetCity = "Cape Town",
+                    weight = 100,
+                ),
+                MapEdge(
+                    sourceCity = "Saint-Petersburg",
+                    targetCity = "Frankfurt",
+                    weight = 100,
+                ),
+            ],
+            opportunities = [
+                Opportunity(
+                    source = self._fb(),
+                    target = self._fb(),
+                    summary = Summary(
+                         totalVolume = 100_000,
+                         averageTimeMinutes = round(0.65 * 24 * 60),
+                         pctFailures = 0.07,
+                    ),
+                ),
+                Opportunity(
+                    source = self._fb(),
+                    target = self._fb(),
+                    summary = Summary(
+                         totalVolume = 1_000_000,
+                         averageTimeMinutes = round(2.65 * 24 * 60),
+                         pctFailures = 0.01,
+                    ),
+                ),
+            ],
+        )
+    
 # Binding   -------------------------------------------
 
-_resolvers = MockResolvers()
+# _resolvers = MockResolvers()
+_resolvers = DatasetsResolvers()
 
 _query = ObjectType("Query")
 
