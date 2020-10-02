@@ -1,17 +1,22 @@
 from ariadne import gql, ObjectType, make_executable_schema, fallback_resolvers
 from ariadne.asgi import GraphQL
 
-from dataclasses import dataclass
-
 import numpy as np
 import networkx as nx
 
 # For API server use:
 _data_dir = 'analytics/data'
 from .datasets import Datasets
+from .gql_types import *
+from .temporary_generator import TemporaryGenerator
 # For Jupyter use:
-# from datasets import Datasets
 # _data_dir = '../../data'
+# from datasets import Datasets
+# from gql_types import *
+# from temporary_generator import TemporaryGenerator
+
+_generator = TemporaryGenerator()
+_num_payments = 10
 
 # Schema    -------------------------------------------
 
@@ -106,77 +111,6 @@ sdl = gql("""
          summary: Summary!
     }
 """)
-
-# Types     -------------------------------------------
-
-@dataclass
-class StaticData:
-    origins: object
-    destinations: object
-    assetCategories: object
-
-@dataclass
-class Party:
-    bdp: object
-    bic: object
-    name: object
-    countryCode: object
-    countryName: object
-    city: object
-
-@dataclass
-class Destination:
-    party: object
-    accounts: object
-
-@dataclass
-class Payment:
-    originBic: object
-    destinationBic: object
-    assetCategory: object
-    currency: object
-    amount: object
-
-@dataclass
-class Hop:
-    source: object
-    target: object
-    payment: object
-    fxRate: object
-    timeTakenMinutes: object
-    crossBorder: object
-
-@dataclass
-class Route:
-    originalPayment: object
-    hops: object
-    risk: object
-    totalFee: object
-    totalTimeMinutes: object
-
-@dataclass
-class Summary:
-    totalVolume: object
-    averageTimeMinutes: object
-    pctFailures: object
-
-@dataclass
-class Stats:
-    summary: object
-    map: object
-    opportunities: object
-
-@dataclass
-class MapEdge:
-    sourceCity: object
-    targetCity: object
-    weight: object
-
-@dataclass
-class Opportunity:
-    source: object
-    target: object
-    summary: object
 
 # Resolvers -------------------------------------------
 
@@ -313,7 +247,11 @@ class MockResolvers:
 
 class DatasetsResolvers:
     
-    def __init__(self, datasets = Datasets(_data_dir)):
+    def __init__(self, datasets = Datasets(
+        data_dir = _data_dir,
+        generator = _generator,
+        num_payments = _num_payments,
+    )):
         self._d = datasets
     
     def _fb(self):
@@ -342,10 +280,14 @@ class DatasetsResolvers:
         ])
     
     def _client_party(self):
-        return self._parties_by_bdps([ self._d.client_bdp_rk ])[0]
+        # return self._parties_by_bdps([ _generator.client_bdp_rk ])[0]
+        return _generator.client_party
 
     def _client_banks(self):
-        client_neighbors = nx.neighbors(self._d.ssi_nx, self._d.client_bdp_rk)
+        client_neighbors = nx.neighbors(
+            self._d.with_client_ssi_nx,
+            _generator.client_bdp_rk,
+        )
         return self._parties_by_bdps(client_neighbors)
 
     def _client_destinations(self):
@@ -356,7 +298,7 @@ class DatasetsResolvers:
             'ACCOUNT NBR WITH ACCOUNT HOLDING INSTITUTION',
         ]][
             lambda x: x['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].isin(
-                self._d.destination_dbp_rks
+                _generator.destination_dbp_rks
             )
         ].drop_duplicates().rename(columns = {
             'RECORD KEY BDP ACCOUNT HOLDING INSTITUTION' : 'RECORD KEY',
@@ -464,36 +406,8 @@ class DatasetsResolvers:
         )
     
     def payments(self):
-        return [
-            Payment(
-                originBic = "FOOOBIC1",
-                destinationBic = "FOOBRBIC2",
-                assetCategory = "ANYY",
-                currency = "USD",
-                amount = 200_000,
-            ),
-            Payment(
-                originBic = "FOOOBIC3",
-                destinationBic = "FOOBRBIC4",
-                assetCategory = "ANYY",
-                currency = "USD",
-                amount = 300_000,
-            ),
-            Payment(
-                originBic = "FOOOBIC5",
-                destinationBic = "FOOBRBIC6",
-                assetCategory = "ANYY",
-                currency = "USD",
-                amount = 400_000,
-            ),
-            Payment(
-                originBic = "FOOOBIC7",
-                destinationBic = "FOOBRBIC8",
-                assetCategory = "ANYY",
-                currency = "USD",
-                amount = 500_000,
-            ),
-        ]    
+        return self._d.payments_history
+    
 # Binding   -------------------------------------------
 
 # _resolvers = MockResolvers()
