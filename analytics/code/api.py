@@ -20,6 +20,7 @@ sdl = gql("""
         staticData: StaticData!
         routes(payment: PaymentInput!): [ Route! ]!
         stats: Stats!
+        payments: [ Payment! ]!
     }
 
     type StaticData {
@@ -277,6 +278,38 @@ class MockResolvers:
                 ),
             ],
         )
+    
+    def payments(self):
+        return [
+            Payment(
+                originBic = "FOOOBIC1",
+                destinationBic = "FOOBRBIC2",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 200_000,
+            ),
+            Payment(
+                originBic = "FOOOBIC3",
+                destinationBic = "FOOBRBIC4",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 300_000,
+            ),
+            Payment(
+                originBic = "FOOOBIC5",
+                destinationBic = "FOOBRBIC6",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 400_000,
+            ),
+            Payment(
+                originBic = "FOOOBIC7",
+                destinationBic = "FOOBRBIC8",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 500_000,
+            ),
+        ]
 
 class DatasetsResolvers:
     
@@ -292,7 +325,7 @@ class DatasetsResolvers:
             countryName = "Foo Bar Republic",
             city = "Fooburg",
         )
-    
+
     def _parties(self, df):
         return list(df.apply(lambda x: Party(
             bdp = x['RECORD KEY'],
@@ -430,6 +463,37 @@ class DatasetsResolvers:
             ],
         )
     
+    def payments(self):
+        return [
+            Payment(
+                originBic = "FOOOBIC1",
+                destinationBic = "FOOBRBIC2",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 200_000,
+            ),
+            Payment(
+                originBic = "FOOOBIC3",
+                destinationBic = "FOOBRBIC4",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 300_000,
+            ),
+            Payment(
+                originBic = "FOOOBIC5",
+                destinationBic = "FOOBRBIC6",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 400_000,
+            ),
+            Payment(
+                originBic = "FOOOBIC7",
+                destinationBic = "FOOBRBIC8",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 500_000,
+            ),
+        ]    
 # Binding   -------------------------------------------
 
 # _resolvers = MockResolvers()
@@ -453,6 +517,12 @@ def resolve_routes(_, info, payment):
 @_query.field("stats")
 def resolve_stats(_, info):
     obj = _resolvers.stats()
+    print("returning", obj)
+    return obj
+
+@_query.field("payments")
+def resolve_payments(_, info):
+    obj = _resolvers.payments()
     print("returning", obj)
     return obj
 
