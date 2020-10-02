@@ -1,6 +1,7 @@
 from ariadne import gql, ObjectType, make_executable_schema, fallback_resolvers
 from ariadne.asgi import GraphQL
 
+import pandas as pd
 import numpy as np
 import networkx as nx
 
@@ -80,6 +81,7 @@ sdl = gql("""
         risk: RiskLevel!
         totalFee: Float
         totalTimeMinutes: Int
+        success: Boolean
     }
     
     enum RiskLevel {
@@ -166,6 +168,7 @@ class MockResolvers:
                 risk = "MD",
                 totalFee = 10_000,
                 totalTimeMinutes = round(1.25 * 24 * 60),
+                success = True,
             ),
         ]
     
@@ -347,49 +350,78 @@ class DatasetsResolvers:
         return routes
     
     def stats(self):
+        payments = self._d.payments_history
+        routes = self._d.routes_history
+
+        total_volume = sum([payment.amount for payment in payments])
+        average_time_minutes = sum([route.totalTimeMinutes for route in routes]) / len(routes)
+        pct_failures = sum([1 for route in routes if not route.success]) / len(routes)
+        
+        source_cities = [ party.city for party in 
+            [ self._parties_by_bdps([payment.originBic])[0] for payment in payments ]
+        ]
+        target_cities = [ party.city for party in 
+            [ self._parties_by_bdps([payment.destinationBic])[0] for payment in payments ]
+        ]
+        weights = [ route.originalPayment.amount for route in routes ]
+
+        map_edges = pd.DataFrame.from_records(
+            zip(source_cities, target_cities, weights),
+            columns = [ 'source_city', 'target_city', 'weight' ]
+        ).groupby([ 'source_city', 'target_city' ]).sum().reset_index().apply(
+            lambda x: MapEdge(x['source_city'], x['target_city'], x['weight']),
+            axis = 1
+        ).values
+
+        opportunities = pd.DataFrame.from_records(
+            [ (route.originalPayment.originBic, route.originalPayment.destinationBic, 
+               route.totalTimeMinutes, route.success
+              ) for route in routes ],
+            columns = [ 'source_bdp', 'target_bdp', 'time_minutes', 'success' ]
+        ).assign(
+            failure = lambda x: np.where(x['success'], 0.0, 1.0)
+        ).groupby([ 'source_bdp', 'target_bdp' ]).agg({
+            'time_minutes' : [('average_time_minutes', 'mean')],
+            'failure' : [
+                 ('total_failures', 'sum'),
+                 ('count_failures', 'count')
+            ],
+        }).reset_index()
+        opportunities.columns = [
+            'source_bdp', 'target_bdp', 'average_time_minutes', 'total_failures', 'count_failures'
+        ]
+        opportunities = opportunities.assign(
+            pct_failures = lambda x: x['total_failures'] / x['count_failures'] * 100
+        )
+        opportunities = opportunities.merge(
+            pd.DataFrame.from_records(
+                [ (payment.originBic, payment.destinationBic, payment.amount) for payment in payments ],
+                columns = [ 'source_bdp', 'target_bdp', 'total_amount' ]
+            ).groupby([ 'source_bdp', 'target_bdp' ]).sum().reset_index(),
+            on = ('source_bdp', 'target_bdp')
+        )[[
+            'source_bdp', 'target_bdp', 'total_amount', 'average_time_minutes', 'pct_failures'
+        ]].apply(
+            lambda x: Opportunity(
+                self._parties_by_bdps([x['source_bdp']])[0],
+                self._parties_by_bdps([x['target_bdp']])[0],
+                Summary(
+                    x['total_amount'],
+                    round(x['average_time_minutes']),
+                    x['pct_failures'],
+                )
+            ),
+            axis = 1
+        ).values        
+        
         return Stats(
             summary = Summary(
-                 totalVolume = 100_000_000,
-                 averageTimeMinutes = round(1.65 * 24 * 60),
-                 pctFailures = 0.03,
+                 totalVolume = total_volume,
+                 averageTimeMinutes = average_time_minutes,
+                 pctFailures = pct_failures,
             ),
-            map = [
-                MapEdge(
-                    sourceCity = "Singapore",
-                    targetCity = "New York",
-                    weight = 100,
-                ),
-                MapEdge(
-                    sourceCity = "London",
-                    targetCity = "Cape Town",
-                    weight = 100,
-                ),
-                MapEdge(
-                    sourceCity = "Saint-Petersburg",
-                    targetCity = "Frankfurt",
-                    weight = 100,
-                ),
-            ],
-            opportunities = [
-                Opportunity(
-                    source = self._fb(),
-                    target = self._fb(),
-                    summary = Summary(
-                         totalVolume = 100_000,
-                         averageTimeMinutes = round(0.65 * 24 * 60),
-                         pctFailures = 0.07,
-                    ),
-                ),
-                Opportunity(
-                    source = self._fb(),
-                    target = self._fb(),
-                    summary = Summary(
-                         totalVolume = 1_000_000,
-                         averageTimeMinutes = round(2.65 * 24 * 60),
-                         pctFailures = 0.01,
-                    ),
-                ),
-            ],
+            map = map_edges,
+            opportunities = opportunities,
         )
     
     def payments(self):

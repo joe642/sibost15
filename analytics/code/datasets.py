@@ -31,6 +31,15 @@ class Datasets:
         self.with_client_ssi_nx = self._onboard_client(self.ssi, self.bdp)
         
         self.payments_history = self._generate_payments(n = num_payments)
+        self.routes_history = list(map(
+            lambda payment: self._generator.generate_route(
+                payment,
+                self.with_client_ssi_nx, 
+                payment.originBic,
+                payment.destinationBic
+            ),
+            self.payments_history
+        ))
     
     def _read_gcp(self, dir_name, file_name):
         return _read_tsv(self._path_gcp_datasets + '/' + dir_name + '/' + file_name)

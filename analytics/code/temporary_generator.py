@@ -154,6 +154,12 @@ class TemporaryGenerator:
             risk = self.r.choice(['LO', 'MD', 'HI']),
             totalFee = sum([ hop.charge for hop in hops ]),
             totalTimeMinutes = sum([ hop.timeTakenMinutes for hop in hops ]),
+            success = self.r.choice([
+                True, True, True, True, True, True, True, True,
+                True, True, True, True, True, True, True, True,
+                True, True, True, True, True, True, True, True,
+                False,
+            ]),
         )
     
     def generate_payment(

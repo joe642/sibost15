@@ -45,6 +45,7 @@ class Route:
     risk: object
     totalFee: object
     totalTimeMinutes: object
+    success: object
 
 @dataclass
 class Summary:
