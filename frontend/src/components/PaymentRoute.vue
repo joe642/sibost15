@@ -1,27 +1,27 @@
 <template>
     <ul class="route">
         <li>
-            <span>10:03</span> 
+            <span>&nbsp;</span> 
             <div><strong>GBP 200</strong> 2d 12h 15m</div>
         </li>
         <li>
-            <span>10:03</span> 
+            <span>&nbsp;</span> 
             <div><strong>GBP 200</strong> 2d 12h 15m</div>
         </li>
         <li>
-            <span>10:03</span> 
+            <span>USD 50000</span> 
             <div><strong>GBP 200</strong> 2d 12h 15m</div>
         </li>
         <li>
-            <span>10:03</span> 
+            <span></span> 
             <div><strong>GBP 200</strong> 2d 12h 15m</div>
         </li>
         <li>
-            <span>10:03</span> 
+            <span></span> 
             <div><strong>GBP 200</strong> 2d 12h 15m</div>
         </li>
         <li>
-            <span>10:03</span> 
+            <span></span> 
             <div><strong>GBP 200</strong> 2d 12h 15m</div>
         </li>
     </ul>
@@ -34,8 +34,11 @@
 
     .route span { 
         position: relative;
-        color: #ccc;
-        padding: 0 1.5em;  
+        color: #FF5252;
+        padding: 11px 38px 0 0;
+        min-width: 175px;
+        text-align: right;
+        font-size: 20px;
     }
 
     .route span::after { 
@@ -47,14 +50,19 @@
         transform: translateX(50%);
         border-radius: 50%;
         background: #fff;
-        border: 1px #ccc solid;
-        width: .8em;
-        height: .8em;
+        border: 4px #BDBDBD solid;
+        width: 50px;
+        height: 50px;
+        font-family: "FontAwesome";
+        content: "\f19c";
+        line-height: 40px;
+        letter-spacing: 9px;
+        color: #212121;
     }
 
 
     .route div {
-        padding: 0 1.5em 6.5em 1.5em;
+        padding: 4px 0.5em 6.5em 47px;
         position: relative;
         min-width: 200px;
         display: block;
@@ -79,7 +87,7 @@
         width: 100%;
         display: block;
         margin: auto;
-        max-width: 300px;
+        max-width: 500px;
     }
     .route, 
     .route *::before, 

@@ -6,27 +6,27 @@
                     <div class="risk-score-wrapper">
                         <span class="risk-score">30</span>
                     </div>
-                    <div class="card-description">
+                    <div class="card-description dark-text">
                         Risk Rating
                     </div>
                 </div>
             </div>
             <div class="p-col-4">
                 <div class="card">
-                    <div class="card-statistic">
+                    <div class="card-statistic blue-text">
                         GBP 200
                     </div>
-                    <div class="card-description">
+                    <div class="card-description dark-text">
                         Estimated Fees
                     </div>
                 </div>
             </div>
             <div class="p-col-4">
                 <div class="card">
-                    <div class="card-statistic">
+                    <div class="card-statistic blue-text">
                         2d 5h 34m
                     </div>
-                    <div class="card-description">
+                    <div class="card-description dark-text">
                         End-to-End Settlement Time
                     </div>
                 </div>
@@ -98,6 +98,7 @@ export default {
         padding: 20px 15px;
         width: 100%;
         box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 12px !important;
+        background-color: white;
     }
     .card-description {
         font-size: 24px;
@@ -131,7 +132,7 @@ export default {
     }
 
     .route-wrapper {
-        padding-top: 150px;
+        padding-top: 100px;
     }
     .filter-wrapper {
         padding-top: 50px;

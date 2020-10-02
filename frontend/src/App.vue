@@ -28,6 +28,30 @@ h1 {
 .text-left {
   text-align: left !important;
 }
+
+#app {
+  background-color: #f7f9f9;
+  min-height: 100vh;
+}
+
+.blue-text {
+  color: #303F9F;
+}
+.red-text {
+  color: #FF5252;
+}
+.dark-text {
+  color: #212121;
+}
+
+.dark-primary-color    { background: #303F9F; }
+.default-primary-color { background: #3F51B5; }
+.light-primary-color   { background: #C5CAE9; }
+.text-primary-color    { color: #FFFFFF; }
+.accent-color          { background: #FF5252; }
+.primary-text-color    { color: #212121; }
+.secondary-text-color  { color: #757575; }
+.divider-color         { border-color: #BDBDBD; }
 </style>
 
 <script>

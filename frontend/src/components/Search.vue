@@ -4,6 +4,24 @@
       <h1>Search Payment Route</h1>
       <div class="p-fluid">
         <div class="p-field">
+          <label for="lastname">Origin BIC</label>
+          <Dropdown
+            v-model="form.assetCategory"
+            :options="assetCategories"
+            optionLabel="name"
+            placeholder="Search for a BIC"
+          />
+        </div>
+        <div class="p-field">
+          <label for="lastname">Destination BIC</label>
+          <Dropdown
+            v-model="form.assetCategory"
+            :options="assetCategories"
+            optionLabel="name"
+            placeholder="Search for a BIC"
+          />
+        </div>
+        <div class="p-field">
           <label for="lastname">Asset Category</label>
           <Dropdown
             v-model="form.assetCategory"
