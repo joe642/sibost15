@@ -25,8 +25,6 @@ class Generator:
             countryName = "United Kingdom",
             city = "London",
         )
-
-
     
     # smart things happen here !
     def generate_client_data(self, ssi, bdp):
@@ -42,7 +40,7 @@ class Generator:
         })
     
     # smart things happen here !
-    def generate_route(self, ssi_nx, origin_bdp_rk, destination_bdp_rk):
+    def generate_route(self, ssi_nx, original_payment, origin_bdp_rk, destination_bdp_rk):
         return []
     
     def generate_payment(

@@ -36,6 +36,7 @@ class Hop:
     fxRate: object
     timeTakenMinutes: object
     crossBorder: object
+    charge: object
 
 @dataclass
 class Route:

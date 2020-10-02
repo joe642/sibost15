@@ -71,6 +71,7 @@ sdl = gql("""
          fxRate: Float # optional
          timeTakenMinutes: Int!
          crossBorder: Boolean!
+         charge: Float!
     }
 
     type Route {
@@ -159,6 +160,7 @@ class MockResolvers:
                         fxRate = 1.23,
                         timeTakenMinutes = round(1.25 * 24 * 60),
                         crossBorder = True,
+                        charge = 10.0,
                     ),
                 ],
                 risk = "MD",
@@ -265,14 +267,17 @@ class DatasetsResolvers:
         )
 
     def _parties(self, df):
-        return list(df.apply(lambda x: Party(
-            bdp = x['RECORD KEY'],
-            bic = x['BIC'],
-            name = x['INSTITUTION NAME'],
-            countryCode = x['ISO COUNTRY CODE'],
-            countryName = x['COUNTRY NAME'],
-            city = x['CITY'],
-        ), axis = 1))
+        if len(df) == 0:
+            return []
+        else:
+            return list(df.apply(lambda x: Party(
+                bdp = x['RECORD KEY'],
+                bic = x['BIC'],
+                name = x['INSTITUTION NAME'],
+                countryCode = x['ISO COUNTRY CODE'],
+                countryName = x['COUNTRY NAME'],
+                city = x['CITY'],
+            ), axis = 1))
     
     def _parties_by_bdps(self, bdps):
         return self._parties(self._d.bdp[
@@ -333,31 +338,13 @@ class DatasetsResolvers:
         )
     
     def routes(self, payment):
-        pmt = Payment(
-            originBic = "FOOBRBIC",
-            destinationBic = "FOOBRBIC",
-            assetCategory = "ANYY",
-            currency = "USD",
-            amount = 100_000,
-        )
-        return [
-            Route(
-                originalPayment = pmt,
-                hops = [
-                    Hop(
-                        source = self._fb(),
-                        target = self._fb(),
-                        payment = pmt,
-                        fxRate = 1.23,
-                        timeTakenMinutes = round(1.25 * 24 * 60),
-                        crossBorder = True,
-                    ),
-                ],
-                risk = "MD",
-                totalFee = 10_000,
-                totalTimeMinutes = round(1.25 * 24 * 60),
-            ),
-        ]
+        routes = self._d.generate_routes(payment)
+        for route in routes:
+            for hop in route.hops:
+                source = self._parties_by_bdps([ hop.source ])
+                hop.source = source[0] if len(source) > 0 else self._client_party()
+                hop.target = self._parties_by_bdps([ hop.target ])[0]
+        return routes
     
     def stats(self):
         return Stats(
@@ -424,7 +411,13 @@ def resolve_staticData(_, info):
 @_query.field("routes")
 def resolve_routes(_, info, payment):
     print("routes requested for payment =", payment)
-    obj = _resolvers.routes(payment)
+    obj = _resolvers.routes(Payment(
+        originBic = payment['originBic'],
+        destinationBic = payment['destinationBic'],
+        assetCategory = payment['assetCategory'],
+        currency = payment['currency'],
+        amount = payment['amount'],
+    ))
     print("returning", obj)
     return obj
 

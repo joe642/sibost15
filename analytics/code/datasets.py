@@ -61,12 +61,21 @@ class Datasets:
     
     def generate_routes(self, payment):
         current_nx = self.with_client_ssi_nx
-        origins = nx.neighbors(payment.origin)
+        origins = nx.neighbors(current_nx, payment.originBic)
         routes = []
         for origin in origins:
-            route = self._generator.generate_route(current_nx, origin, payment.destination)
+            route = self._generator.generate_route(
+                payment,
+                current_nx, 
+                origin,
+                payment.destinationBic,
+            )
             routes.append(route)
-            current_nx = nx.remove_nodes(current_nx, route)
+            current_nx = nx.restricted_view(
+                current_nx,
+                list(map(lambda x: x.target, route.hops[:-1])),
+                []
+            )
         return routes
     
     def _generate_payments(self, n = 10000):

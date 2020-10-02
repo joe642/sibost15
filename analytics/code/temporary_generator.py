@@ -101,8 +101,60 @@ class TemporaryGenerator:
             ]
         )
     
-    def generate_route(self, ssi_nx, origin_bdp_rk, destination_bdp_rk):
-        return []
+    def generate_route(
+        self, 
+        original_payment, 
+        ssi_nx, 
+        origin_bdp_rk,
+        destination_bdp_rk
+    ):
+        path = nx.shortest_path(
+            ssi_nx,
+            original_payment.originBic,
+            original_payment.destinationBic,
+        )
+        segments = list(zip(path, path[1:]))
+        
+        hops = []
+        previous_payment = original_payment
+        for src, tgt in segments:
+            charge = round(self.r.triangular(
+                0,
+                previous_payment.amount * 0.0004,
+            ))
+            reduced_amount = previous_payment.amount - charge
+            edge = ssi_nx.edges[src, tgt]
+            crossBorder = edge['ISO COUNTRY CODE of OWNER'] != edge['ISO COUNTRY CODE of HOLDER']
+            currency = edge['ISO CURRENCY CODE']
+            fxRate = 1.0 if currency == previous_payment.currency else self.r.uniform(0.5, 2.5)
+            payment = Payment(
+                originBic = src,
+                destinationBic = tgt,
+                assetCategory = previous_payment.assetCategory,
+                currency = currency,
+                amount = round(reduced_amount * fxRate)
+            )
+            hop = Hop(
+                source = src,
+                target = tgt,
+                payment = payment,
+                fxRate = fxRate,
+                timeTakenMinutes = round(self.r.uniform(
+                    0,
+                    1.5 * 24 * 60,
+                )),
+                crossBorder = crossBorder,
+                charge = charge,
+            )
+            hops.append(hop)
+        
+        return Route(
+            originalPayment = original_payment,
+            hops = hops,
+            risk = self.r.choice(['LO', 'MD', 'HI']),
+            totalFee = sum([ hop.charge for hop in hops ]),
+            totalTimeMinutes = sum([ hop.timeTakenMinutes for hop in hops ]),
+        )
     
     def generate_payment(
         self,
