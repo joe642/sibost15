@@ -3,3 +3,4 @@ node_modules/
 test/unit/coverage
 analytics/data/
 analytics/code/__pycache__/
+analytics/code/static/
