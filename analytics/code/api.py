@@ -462,8 +462,12 @@ def resolve_stats(_, info):
 
 schema = make_executable_schema(sdl, [ _query, fallback_resolvers ])
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 CORS(app)
+
+@app.route("/", methods=["GET"])
+def home():
+    return app.send_static_file('index.html')
 
 @app.route("/graphql", methods=["GET"])
 def graphql_playground():
