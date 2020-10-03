@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from ariadne.constants import PLAYGROUND_HTML
 from ariadne import gql, ObjectType, graphql_sync,make_executable_schema, fallback_resolvers
 from ariadne.asgi import GraphQL
 
 from dataclasses import dataclass
 
+import sys
 import numpy as np
 import networkx as nx
 
@@ -461,6 +463,7 @@ def resolve_stats(_, info):
 schema = make_executable_schema(sdl, [ _query, fallback_resolvers ])
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/graphql", methods=["GET"])
 def graphql_playground():
@@ -490,5 +493,5 @@ def graphql_server():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0',port='80',debug=True)
+    app.run(host=sys.argv[1],port=sys.argv[2],debug=True)
     #app.run(debug=True)
