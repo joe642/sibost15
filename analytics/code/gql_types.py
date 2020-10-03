@@ -52,6 +52,7 @@ class Summary:
     totalVolume: object
     averageTimeMinutes: object
     pctFailures: object
+    riskLevel: object
 
 @dataclass
 class Stats:

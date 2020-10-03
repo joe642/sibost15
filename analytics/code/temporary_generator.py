@@ -3,36 +3,43 @@ import networkx as nx
 import random
 
 # For API server use:
-from .gql_types import *
+# from .gql_types import *
 # For Jupyter use:
-# from gql_types import *
+from gql_types import *
 
 # smart things do not happen here.
 class TemporaryGenerator:
     
-    def __init__(self, seed = 100500):
-        self.seed = seed
-        self.r = random.Random(self.seed)
-        
-        self.client_bdp_rk = 'BD_CLIENT_Z2'
-        self.destination_dbp_rks = [
-            'BD00000005G6',
-            'BD00000006O3',
-            'BD0000000HUQ',
-        ]
-        self.client_party = Party(
-            bdp = self.client_bdp_rk,
+    def __init__(
+        self, 
+        seed = 100500,
+        client_party = Party(
+            bdp = 'BD_CLIENT_Z2',
             bic = "BDABLABX840",
             name = "Z2 Corp.",
             countryCode = "SG",
             countryName = "United Kingdom",
             city = "London",
-        )
+        ),
+        destination_dbp_rks = [
+            'BD000000I8PJ',
+            'BD00000006O3',
+            'BD0000000HUQ',
+        ],
+        num_suppliers = 3
+    ):
+        self.seed = seed
+        self.r = random.Random(self.seed)
+        
+        self.client_party = client_party
+        self.client_bdp_rk = client_party.bdp
+        self.destination_dbp_rks = destination_dbp_rks
         self.num_client_bank_bdp_rks = 5
         self.supplier_dbp_rks = [
             self._generate_bdp_rk()
             for i in range(len(self.destination_dbp_rks))
         ]
+        self.num_suppliers = num_suppliers
         
         self.asset_categories = [
             'ANYY', 'WHLS', 'COPA',
@@ -64,6 +71,13 @@ class TemporaryGenerator:
         ))
     
     def generate_client_data(self, ssi, bdp):
+        client_bank_bdp_rks = self.r.choices(
+            ssi['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].drop_duplicates().values,
+            k = self.num_client_bank_bdp_rks,
+        )
+        self.destination_dbp_rks = ssi[['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION']][
+            lambda x: ~x['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].isin(client_bank_bdp_rks)
+        ].sample(self.num_suppliers)['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].values
         return pd.DataFrame.from_records(
             [
                 [ 
@@ -73,10 +87,7 @@ class TemporaryGenerator:
                     self.r.choice(self.asset_categories),
                     self._generate_account_number(),
                 ]
-                for client_bank_bdp_rk in self.r.choices(
-                    ssi['RECORD KEY BDP OWNER'].drop_duplicates().values,
-                    k = self.num_client_bank_bdp_rks,
-                )
+                for client_bank_bdp_rk in client_bank_bdp_rks
             ] + [
                 [
                     supplier_bank_bdp_rk,
@@ -151,7 +162,11 @@ class TemporaryGenerator:
         return Route(
             originalPayment = original_payment,
             hops = hops,
-            risk = self.r.choice(['LO', 'MD', 'HI']),
+            risk = self.r.choice([
+                'LO', 'LO', 'LO', 'LO',
+                'MD', 'MD', 'MD', 
+                'HI',
+            ]),
             totalFee = sum([ hop.charge for hop in hops ]),
             totalTimeMinutes = sum([ hop.timeTakenMinutes for hop in hops ]),
             success = self.r.choice([
