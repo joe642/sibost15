@@ -2,7 +2,7 @@ import pandas as pd
 import networkx as nx
 
 # For API server use:
-from .generator import Generator
+from generator import Generator
 # For Jupyter use:
 # from generator import Generator
 

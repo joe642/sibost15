@@ -1,0 +1,24 @@
+query StaticData {
+  staticData {
+    assetCategories
+    destinations {
+      party {
+        bdp
+        bic
+        name
+        countryCode
+        countryName
+        city
+      }
+      accounts
+    }
+    origins {
+      bdp
+      bic
+      name
+      countryCodes
+      countryName
+      city
+    }
+  }
+}
