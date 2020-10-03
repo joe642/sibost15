@@ -1,0 +1,6 @@
+flask
+ariadne
+numpy
+networkx
+datasets
+dataclasses
