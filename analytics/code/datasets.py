@@ -1,5 +1,6 @@
 import pandas as pd
 import networkx as nx
+import numpy as np
 
 # For API server use:
 from .generator import Generator
@@ -12,7 +13,12 @@ def _read_tsv(path):
 
 class Datasets:
     
-    def __init__(self, data_dir, generator = Generator()):
+    def __init__(
+        self,
+        data_dir,
+        generator = Generator(),
+        num_payments = 10000
+    ):
         self._data_dir = data_dir
         self._generator = generator
 
@@ -22,22 +28,25 @@ class Datasets:
         self.edges = self._calc_edges(self.ssi, self.bdp)
         self.ssi_nx = self._calc_ssi_nx(self.edges)
         
-        # todo: replace with BDP IDs used in _onboard_client
-        self.client_bdp_rk = 'BD0000000B8A'
-        self.destination_dbp_rks = [
-            'BD00000005G6',
-            'BD00000006O3',
-            'BD0000000HUQ',
-        ]
         self.with_client_ssi_nx = self._onboard_client(self.ssi, self.bdp)
+        
+        self.payments_history = self._generate_payments(n = num_payments)
+        self.routes_history = list(map(
+            lambda payment: self._generator.generate_route(
+                payment,
+                self.with_client_ssi_nx, 
+                payment.originBic,
+                payment.destinationBic
+            ),
+            self.payments_history
+        ))
     
     def _read_gcp(self, dir_name, file_name):
         return _read_tsv(self._path_gcp_datasets + '/' + dir_name + '/' + file_name)
     
     def _onboard_client(self, ssi, bdp):
         
-        # smart things happenning here
-        client_edges_df = self._generator.generate_client_data(self.ssi, self.bdp)[[
+        ssi_cols = [
             # BDP ID
             'RECORD KEY BDP OWNER',                        # for Source side -- same constant, imaginary;   for Target side -- one of bdp dataset BDP IDs
             'RECORD KEY BDP ACCOUNT HOLDING INSTITUTION',  # for Source side -- one of bdp dataset BDP IDs; for Target side -- unique, imaginary
@@ -45,10 +54,13 @@ class Datasets:
             'ISO CURRENCY CODE',
             'ASSET CATEGORY',
             'ACCOUNT NBR WITH ACCOUNT HOLDING INSTITUTION',
-        ]]
+        ]
+        
+        # smart things happenning here
+        client_edges_df = self._generator.generate_client_data(ssi, bdp)[ssi_cols]
         
         with_client_edges = self._calc_edges(
-            ssi + client_edges_df,
+            pd.concat([ ssi[ssi_cols], client_edges_df ]),
             bdp
         )
         
@@ -58,13 +70,34 @@ class Datasets:
     
     def generate_routes(self, payment):
         current_nx = self.with_client_ssi_nx
-        origins = nx.neighbors(payment.origin)
+        origins = nx.neighbors(current_nx, payment.originBic)
         routes = []
         for origin in origins:
-            route = self._generator.generate_route(current_nx, origin, payment.destination)
+            route = self._generator.generate_route(
+                payment,
+                current_nx, 
+                origin,
+                payment.destinationBic,
+            )
             routes.append(route)
-            current_nx = nx.remove_nodes(current_nx, route)
+            current_nx = nx.restricted_view(
+                current_nx,
+                list(map(lambda x: x.target, route.hops[:-1])),
+                []
+            )
         return routes
+    
+    def _generate_payments(self, n = 10000):
+        return [
+            self._generator.generate_payment(
+                origin_bdp_rks = list(nx.neighbors(
+                    self.with_client_ssi_nx,
+                    self._generator.client_bdp_rk,
+                )),
+                destination_bdp_rks = self._generator.destination_dbp_rks,
+            )
+            for i in range(n)
+        ]
     
     def _calc_edges(self, ssi, bdp):
         
@@ -90,7 +123,14 @@ class Datasets:
             bdp_df,
             left_on = 'RECORD KEY BDP OWNER',
             right_on = 'RECORD KEY',
-        ).merge(
+            how = 'left', # so we don't have to add client to BDP
+        ).assign(**{
+            'RECORD KEY' : lambda x: np.where(
+                x['RECORD KEY'].isna(),
+                x['RECORD KEY BDP OWNER'],
+                x['RECORD KEY'],
+            )
+        }).merge(
             bdp_df,
             left_on = 'RECORD KEY BDP ACCOUNT HOLDING INSTITUTION',
             right_on = 'RECORD KEY',
