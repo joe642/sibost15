@@ -34,17 +34,14 @@
           <label for="amount">Amount</label>
           <InputText id="amount" type="text" />
         </div>
-        <Button
-          label="Search" class="p-button-primary"
-          @click="handleSubmit"
-        />
+        <Button label="Search" class="p-button-primary" @click="handleSubmit" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import Button from "primevue/button"
+import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputText from "primevue/inputtext";
 
@@ -71,8 +68,8 @@ export default {
   },
 
   methods: {
-    handleSubmit () {
-      this.$router.push({ path: 'payment-route' })
+    handleSubmit() {
+      this.$router.push({ path: "payment-route" });
     }
   }
 };

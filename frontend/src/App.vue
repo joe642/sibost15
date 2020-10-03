@@ -6,16 +6,18 @@
 </template>
 
 <style lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Source+Sans+Pro:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Source+Sans+Pro:wght@400;600&display=swap");
 
 body {
   margin: 0;
   padding: 0;
-  font-family: 'Source Sans Pro', sans-serif;
+  font-family: "Source Sans Pro", sans-serif;
   font-weight: 400;
 }
-h1, h2, h3 {
-  font-family: 'Montserrat', sans-serif;
+h1,
+h2,
+h3 {
+  font-family: "Montserrat", sans-serif;
   font-weight: 700;
 }
 
@@ -35,23 +37,39 @@ h1 {
 }
 
 .blue-text {
-  color: #303F9F;
+  color: #303f9f;
 }
 .red-text {
-  color: #FF5252;
+  color: #ff5252;
 }
 .dark-text {
   color: #212121;
 }
 
-.dark-primary-color    { background: #303F9F; }
-.default-primary-color { background: #3F51B5; }
-.light-primary-color   { background: #C5CAE9; }
-.text-primary-color    { color: #FFFFFF; }
-.accent-color          { background: #FF5252; }
-.primary-text-color    { color: #212121; }
-.secondary-text-color  { color: #757575; }
-.divider-color         { border-color: #BDBDBD; }
+.dark-primary-color {
+  background: #303f9f;
+}
+.default-primary-color {
+  background: #3f51b5;
+}
+.light-primary-color {
+  background: #c5cae9;
+}
+.text-primary-color {
+  color: #ffffff;
+}
+.accent-color {
+  background: #ff5252;
+}
+.primary-text-color {
+  color: #212121;
+}
+.secondary-text-color {
+  color: #757575;
+}
+.divider-color {
+  border-color: #bdbdbd;
+}
 </style>
 
 <script>
@@ -61,5 +79,5 @@ export default {
   components: {
     Header
   }
-}
+};
 </script>
