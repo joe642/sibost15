@@ -1,43 +1,47 @@
 <template>
-  <div class="p-grid">
-    <div class="p-col-6 p-offset-3">
-      <h1>Search Payment Route</h1>
-      <div class="p-fluid">
-        <div class="p-field">
-          <label for="lastname">Origin BIC</label>
-          <Dropdown
-            v-model="form.assetCategory"
-            :options="assetCategories"
-            optionLabel="name"
-            placeholder="Search for a BIC"
-          />
+  <ApolloQuery
+    :query="require('../graphql/StaticData.gql')"
+  >
+    <div class="p-grid">
+      <div class="p-col-6 p-offset-3">
+        <h1>Search Payment Route</h1>
+        <div class="p-fluid">
+          <div class="p-field">
+            <label for="lastname">Origin BIC</label>
+            <Dropdown
+              v-model="form.assetCategory"
+              :options="assetCategories"
+              optionLabel="name"
+              placeholder="Search for a BIC"
+            />
+          </div>
+          <div class="p-field">
+            <label for="lastname">Destination BIC</label>
+            <Dropdown
+              v-model="form.assetCategory"
+              :options="assetCategories"
+              optionLabel="name"
+              placeholder="Search for a BIC"
+            />
+          </div>
+          <div class="p-field">
+            <label for="lastname">Asset Category</label>
+            <Dropdown
+              v-model="form.assetCategory"
+              :options="assetCategories"
+              optionLabel="name"
+              placeholder="Select an Asset Category"
+            />
+          </div>
+          <div class="p-field">
+            <label for="amount">Amount</label>
+            <InputText id="amount" type="text" />
+          </div>
+          <Button label="Search" class="p-button-primary" @click="handleSubmit" />
         </div>
-        <div class="p-field">
-          <label for="lastname">Destination BIC</label>
-          <Dropdown
-            v-model="form.assetCategory"
-            :options="assetCategories"
-            optionLabel="name"
-            placeholder="Search for a BIC"
-          />
-        </div>
-        <div class="p-field">
-          <label for="lastname">Asset Category</label>
-          <Dropdown
-            v-model="form.assetCategory"
-            :options="assetCategories"
-            optionLabel="name"
-            placeholder="Select an Asset Category"
-          />
-        </div>
-        <div class="p-field">
-          <label for="amount">Amount</label>
-          <InputText id="amount" type="text" />
-        </div>
-        <Button label="Search" class="p-button-primary" @click="handleSubmit" />
       </div>
     </div>
-  </div>
+  </ApolloQuery>
 </template>
 
 <script>
