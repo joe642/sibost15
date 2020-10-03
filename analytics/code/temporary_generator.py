@@ -112,10 +112,18 @@ class TemporaryGenerator:
             ]
         )
     
+    def risk2num(self, risk):
+        return {
+            'LO' : 1,
+            'MD' : 2,
+            'HI' : 3,
+        }[risk]
+
     def generate_route(
         self, 
         original_payment, 
         ssi_nx, 
+        country,
         origin_bdp_rk,
         destination_bdp_rk
     ):
@@ -128,6 +136,8 @@ class TemporaryGenerator:
         
         hops = []
         previous_payment = original_payment
+        cd = country[['ISO COUNTRY CODE', 'riskClassificationNumeric']].set_index('ISO COUNTRY CODE').to_dict('index')
+        risk = 0
         for src, tgt in segments:
             charge = round(self.r.triangular(
                 0,
@@ -137,13 +147,17 @@ class TemporaryGenerator:
             edge = ssi_nx.edges[src, tgt]
             crossBorder = edge['ISO COUNTRY CODE of OWNER'] != edge['ISO COUNTRY CODE of HOLDER']
             currency = edge['ISO CURRENCY CODE']
+            risk = max(risk, self.risk2num(cd[edge['ISO COUNTRY CODE of HOLDER']]['riskClassificationNumeric']))
             fxRate = 1.0 if currency == previous_payment.currency else self.r.uniform(0.5, 2.5)
             payment = Payment(
                 originBic = src,
                 destinationBic = tgt,
                 assetCategory = previous_payment.assetCategory,
                 currency = currency,
-                amount = round(reduced_amount * fxRate)
+                amount = round(reduced_amount * fxRate),
+                timestampMinutes = 0,
+                status = True,
+                gCaseId = None,
             )
             hop = Hop(
                 source = src,
@@ -162,11 +176,12 @@ class TemporaryGenerator:
         return Route(
             originalPayment = original_payment,
             hops = hops,
-            risk = self.r.choice([
-                'LO', 'LO', 'LO', 'LO',
-                'MD', 'MD', 'MD', 
-                'HI',
-            ]),
+#             risk = self.r.choice([
+#                 'LO', 'LO', 'LO', 'LO',
+#                 'MD', 'MD', 'MD', 
+#                 'HI',
+#             ]),
+            risk = ['LO','MD','HI'][risk-1],
             totalFee = sum([ hop.charge for hop in hops ]),
             totalTimeMinutes = sum([ hop.timeTakenMinutes for hop in hops ]),
             success = self.r.choice([
@@ -195,6 +210,12 @@ class TemporaryGenerator:
             currencies = self.currencies
 
         min_amount, max_amount = amount_range
+        status = self.r.choice([
+            True,True,True,True,True,True,True,True,True,
+            True,True,True,True,True,True,True,True,True,
+            False,False,False,
+        ])
+        gCaseId = 'UMAPCASE' + str(round(self.r.uniform(0, 9))) + str(round(self.r.uniform(0, 9))) + str(round(self.r.uniform(0, 9))) if not status else None
         return Payment(
                 originBic = self.r.choice(origin_bdp_rks),
                 destinationBic = self.r.choice(destination_bdp_rks),
@@ -205,5 +226,8 @@ class TemporaryGenerator:
                     max_amount,
                     (max_amount - min_amount) * 0.01
                 )),
+                timestampMinutes = round(self.r.uniform(0, 1 * 30 * 24 * 60)),
+                status = status,
+                gCaseId = gCaseId,
         )
     

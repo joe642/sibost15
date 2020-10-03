@@ -27,6 +27,10 @@ class Payment:
     assetCategory: object
     currency: object
     amount: object
+    timestampMinutes: object
+    status: object
+    gCaseId: object
+
 
 @dataclass
 class Hop:

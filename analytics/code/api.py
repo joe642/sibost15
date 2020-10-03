@@ -68,6 +68,9 @@ sdl = gql("""
         assetCategory: String!
         currency: String!
         amount: Float!
+        timestampMinutes: Int
+        status: String
+        gCaseId: String
     }
     
     input PaymentInput {
@@ -164,6 +167,9 @@ class MockResolvers:
             assetCategory = "ANYY",
             currency = "USD",
             amount = 100_000,
+            timestamp = 15000,
+            status = True,
+            gCaseId = None,
         )
         return [
             Route(
@@ -240,6 +246,9 @@ class MockResolvers:
                 assetCategory = "ANYY",
                 currency = "USD",
                 amount = 200_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
             ),
             Payment(
                 originBic = "FOOOBIC3",
@@ -247,6 +256,9 @@ class MockResolvers:
                 assetCategory = "ANYY",
                 currency = "USD",
                 amount = 300_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
             ),
             Payment(
                 originBic = "FOOOBIC5",
@@ -254,6 +266,9 @@ class MockResolvers:
                 assetCategory = "ANYY",
                 currency = "USD",
                 amount = 400_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
             ),
             Payment(
                 originBic = "FOOOBIC7",
@@ -261,6 +276,9 @@ class MockResolvers:
                 assetCategory = "ANYY",
                 currency = "USD",
                 amount = 500_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
             ),
         ]
 
@@ -476,6 +494,9 @@ def resolve_routes(_, info, payment):
         assetCategory = payment['assetCategory'],
         currency = payment['currency'],
         amount = payment['amount'],
+        timestampMinutes = 0,
+        status = True,
+        gCaseId = None,
     ))
     log("returning", obj)
     return obj

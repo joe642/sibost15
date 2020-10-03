@@ -25,6 +25,8 @@ class Datasets:
         self._path_gcp_datasets = self._data_dir + '/raw/gcp/datasets'
         self.ssi = self._read_gcp('StandingSettlementInstructions', 'SSIPLUS_V3_MONTHLY_FULL_20200828.txt')
         self.bdp = self._read_gcp('StandingSettlementInstructions', 'BANKDIRECTORYPLUS_V3_FULL_20200828.txt')
+        self.country = _read_tsv(self._data_dir + '/raw/country_risk.tsv')
+        
         self.edges = self._calc_edges(self.ssi, self.bdp)
         self.ssi_nx = self._calc_ssi_nx(self.edges)
         self.ssi = self.ssi[
@@ -45,6 +47,7 @@ class Datasets:
             lambda payment: self._generator.generate_route(
                 payment,
                 self.with_client_ssi_nx, 
+                self.country,
                 payment.originBic,
                 payment.destinationBic
             ),
@@ -87,6 +90,7 @@ class Datasets:
                 route = self._generator.generate_route(
                     payment,
                     current_nx, 
+                    self.country,
                     origin,
                     payment.destinationBic,
                 )
