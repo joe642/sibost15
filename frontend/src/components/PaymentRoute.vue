@@ -17,7 +17,7 @@
       <div>
         <strong v-tooltip.right="`BIC: ${hop.target.bic}`" class="bank-name">{{ hop.target.name }}</strong> 
         <i>{{ hop.target.countryName }} - {{ hop.target.city }}</i><br/>
-        <p class="time">{{ formateAsHours(hop.timeTakenMinutes) }}<br/></p>
+        <p class="time">{{ formatAsHours(hop.timeTakenMinutes) }}<br/></p>
       </div>
     </li>
   </ul>
@@ -33,7 +33,7 @@ export default {
   },
 
   methods: {
-    formateAsHours (totalMinutes) {
+    formatAsHours (totalMinutes) {
       const hours = Math.floor(totalMinutes / 60);          
       const minutes = totalMinutes % 60;
 
