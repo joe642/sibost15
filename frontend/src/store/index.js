@@ -9,7 +9,7 @@ export default new Vuex.Store({
   state: {
     originalPayment: {
       assetCategory: "",
-      originBic: "",
+      originBic: "BD_CLIENT_Z2",
       amount: 0,
       destinationBic: "",
       currency: ""

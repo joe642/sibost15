@@ -37,7 +37,7 @@
 
 .header {
   height: 80px;
-  margin-bottom: 80px;
+  margin-bottom: 50px;
   box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 12px !important;
   background-color: white;
 }

@@ -4,7 +4,7 @@
             <div class="p-col-4">
                 <div class="card">
                 <div class="card-statistic blue-text">
-                    {{ data.summary.averageTimeMinutes }}
+                    {{ formatAsHours(data.summary.averageTimeMinutes) }}
                 </div>
                 <div class="card-description dark-text">
                     Average Payment Time
@@ -34,12 +34,9 @@
         </div>
 
         <div class="p-grid">
-            <div class="p-col-4">
-
-            </div>
-            <div class="p-col-8">
+            <div class="p-col-12">
                 <div class="card">
-                    <h3 class="blue-text">Payment History</h3>
+                    <h3 class="card-title">Opportunities</h3>
                     <DataTable 
                         :value="opportunities"
                         :expanded-rows="expandedRows"
@@ -54,6 +51,13 @@
                         <Column :expander="true" headerStyle="width: 3rem" />
                         <Column field="source.name" header="Source" sortable></Column>
                         <Column field="target.name" header="Target" sortable></Column>
+                        <Column field="summary.riskLevel" header="Risk" sortable></Column>
+                        <Column field="summary.totalVolume" header="Total Volume" sortable></Column>
+                        <Column field="summary.timestampMinutes" header="Avg. Duration" :sortable="true">
+                            <template #body="slotProps">
+                                {{ formatAsHours(slotProps.data.summary.averageTimeMinutes) }}
+                            </template>
+                        </Column>
                         <template #expansion="slotProps">
                             <div class="orders-subtable">
                                 <div class="p-grid">
@@ -90,7 +94,7 @@
         <div class="p-grid">
             <div class="p-col-12">
                 <div class="card">
-                    <h3 class="blue-text">Payment History</h3>
+                    <h3 class="card-title">Payment History</h3>
                     <DataTable :value="payments" :paginator="true" :rows="10"
                         paginatorTemplate="CurrentPageReport FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
                         :rowsPerPageOptions="[10,20,50]"
@@ -223,7 +227,9 @@ export default {
   margin: auto;
 }
 h3 {
-    font-size: 32px;
-    margin-top: 5px;
+    margin-bottom: 25px;
+}
+.card {
+    padding: 20px;
 }
 </style>

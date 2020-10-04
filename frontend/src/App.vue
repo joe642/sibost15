@@ -93,6 +93,14 @@ h1 {
   margin-bottom: 25px;
   margin-top: 18px;
 }
+.card-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 26px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  color: #212121;
+}
 </style>
 
 <script>
