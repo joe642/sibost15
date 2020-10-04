@@ -4,7 +4,7 @@ import networkx as nx
 # For API server use:
 from gql_types import *
 # For Jupyter use:
-# from gql_types import *
+from gql_types import *
 
 class Generator:
     

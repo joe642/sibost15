@@ -3,9 +3,9 @@ import networkx as nx
 import numpy as np
 
 # For API server use:
-from generator import Generator
+# from .generator import Generator
 # For Jupyter use:
-# from generator import Generator
+from generator import Generator
 
 def _read_tsv(path):
     print('reading TSV:', path)
@@ -27,6 +27,16 @@ class Datasets:
         self.bdp = self._read_gcp('StandingSettlementInstructions', 'BANKDIRECTORYPLUS_V3_FULL_20200828.txt')
         self.edges = self._calc_edges(self.ssi, self.bdp)
         self.ssi_nx = self._calc_ssi_nx(self.edges)
+        self.ssi = self.ssi[
+            lambda x: x['RECORD KEY BDP OWNER'].isin(self.ssi_nx.nodes())
+        ][
+            lambda x: x['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].isin(self.ssi_nx.nodes())
+        ]
+        self.bdp = self.bdp[
+            lambda x: x['RECORD KEY'].isin(self.ssi_nx.nodes())
+        ][
+            lambda x: ~x['ISO COUNTRY CODE'].isna()
+        ]
         
         self.with_client_ssi_nx = self._onboard_client(self.ssi, self.bdp)
         
@@ -73,18 +83,23 @@ class Datasets:
         origins = nx.neighbors(current_nx, payment.originBic)
         routes = []
         for origin in origins:
-            route = self._generator.generate_route(
-                payment,
-                current_nx, 
-                origin,
-                payment.destinationBic,
-            )
-            routes.append(route)
-            current_nx = nx.restricted_view(
-                current_nx,
-                list(map(lambda x: x.target, route.hops[:-1])),
-                []
-            )
+            try:
+                route = self._generator.generate_route(
+                    payment,
+                    current_nx, 
+                    origin,
+                    payment.destinationBic,
+                )
+                routes.append(route)
+                route_nodes = list(map(lambda x: x.target, route.hops[:-1]))
+                print('removing nodes', route_nodes)
+                current_nx = nx.restricted_view(
+                    current_nx,
+                    route_nodes,
+                    []
+                )
+            except Exception as e:
+                print('failed to generate route, origin', origin, 'dest', payment.destinationBic, e)
         return routes
     
     def _generate_payments(self, n = 10000):

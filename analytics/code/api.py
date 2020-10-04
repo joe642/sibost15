@@ -11,18 +11,33 @@ import numpy as np
 import networkx as nx
 
 # For API server use:
+<<<<<<< HEAD
 _data_dir = '/mnt/gcp_data'
 from datasets import Datasets
 from gql_types import *
 from temporary_generator import TemporaryGenerator
+=======
+_data_dir = 'analytics/data'
+# from .datasets import Datasets
+# from .gql_types import *
+# from .temporary_generator import TemporaryGenerator
+>>>>>>> 9bb8176315c7a644f89141f85cc92876a4faa7cf
 # For Jupyter use:
 # _data_dir = '../../data'
-# from datasets import Datasets
-# from gql_types import *
-# from temporary_generator import TemporaryGenerator
+from datasets import Datasets
+from gql_types import *
+from temporary_generator import TemporaryGenerator
 
-_generator = TemporaryGenerator()
-_num_payments = 10
+_generator = TemporaryGenerator(
+    num_suppliers = 50
+)
+_num_payments = 10000
+
+def log(*args):
+    # For API server use:
+    app.logger.info(' '.join(['%s' for arg in args]), *args)
+    # For Jupyter use:
+#     print(*args)
 
 # Schema    -------------------------------------------
 
@@ -31,7 +46,7 @@ sdl = gql("""
         staticData: StaticData!
         routes(payment: PaymentInput!): [ Route! ]!
         stats: Stats!
-        payments: [ Payment! ]!
+        payments(fromIdx: Int, toIdx: Int): [ Payment! ]!
     }
 
     type StaticData {
@@ -99,6 +114,7 @@ sdl = gql("""
          totalVolume: Float!
          averageTimeMinutes: Int!
          pctFailures: Float!
+         riskLevel: RiskLevel!
     }
 
     type Stats {
@@ -264,16 +280,6 @@ class DatasetsResolvers:
     )):
         self._d = datasets
     
-    def _fb(self):
-        return Party(
-            bdp = "BD0000000B8A",
-            bic = "FOOBRBIC",
-            name = "Foo Bar Corp.",
-            countryCode = "FB",
-            countryName = "Foo Bar Republic",
-            city = "Fooburg",
-        )
-
     def _parties(self, df):
         if len(df) == 0:
             return []
@@ -354,30 +360,40 @@ class DatasetsResolvers:
                 hop.target = self._parties_by_bdps([ hop.target ])[0]
         return routes
     
+    def risk2num(self, risk):
+        return {
+            'LO' : 1,
+            'MD' : 2,
+            'HI' : 3,
+        }[risk]
+    
     def stats(self):
         payments = self._d.payments_history
         routes = self._d.routes_history
 
+        log("stats: calculating summary")
         total_volume = sum([payment.amount for payment in payments])
         average_time_minutes = sum([route.totalTimeMinutes for route in routes]) / len(routes)
         pct_failures = sum([1 for route in routes if not route.success]) / len(routes)
-        
-        source_cities = [ party.city for party in 
-            [ self._parties_by_bdps([payment.originBic])[0] for payment in payments ]
-        ]
-        target_cities = [ party.city for party in 
-            [ self._parties_by_bdps([payment.destinationBic])[0] for payment in payments ]
-        ]
+        risk_level = ['LO','MD','HI'][round(sum([self.risk2num(route.risk) for route in routes]) / len(routes))]
+
+        log("stats: calculating map edges")
+        source_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.originBic for payment in payments ]) }
+        target_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.destinationBic for payment in payments ]) }
+        source_cities = [ source_parties[payment.originBic] if payment.originBic in source_parties else None for payment in payments ]
+        target_cities = [ target_parties[payment.destinationBic] if payment.destinationBic in target_parties else None for payment in payments ]
         weights = [ route.originalPayment.amount for route in routes ]
 
+        log("stats: making map edges df")
         map_edges = pd.DataFrame.from_records(
             zip(source_cities, target_cities, weights),
             columns = [ 'source_city', 'target_city', 'weight' ]
-        ).groupby([ 'source_city', 'target_city' ]).sum().reset_index().apply(
+        ).dropna().groupby([ 'source_city', 'target_city' ]).sum().reset_index().apply(
             lambda x: MapEdge(x['source_city'], x['target_city'], x['weight']),
             axis = 1
         ).values
 
+        log("stats: calculating opportunities")
         opportunities = pd.DataFrame.from_records(
             [ (route.originalPayment.originBic, route.originalPayment.destinationBic, 
                route.totalTimeMinutes, route.success
@@ -398,6 +414,7 @@ class DatasetsResolvers:
         opportunities = opportunities.assign(
             pct_failures = lambda x: x['total_failures'] / x['count_failures'] * 100
         )
+        log("stats: making opportunities df")
         opportunities = opportunities.merge(
             pd.DataFrame.from_records(
                 [ (payment.originBic, payment.destinationBic, payment.amount) for payment in payments ],
@@ -414,23 +431,35 @@ class DatasetsResolvers:
                     x['total_amount'],
                     round(x['average_time_minutes']),
                     x['pct_failures'],
+                    _generator.r.choice([
+                        'HI','HI','HI','HI','HI','HI',
+                        'MD','MD','MD','MD',
+                        'LO',
+                    ]),
                 )
             ),
             axis = 1
         ).values        
         
-        return Stats(
+        stats = Stats(
             summary = Summary(
                  totalVolume = total_volume,
-                 averageTimeMinutes = average_time_minutes,
+                 averageTimeMinutes = round(average_time_minutes),
                  pctFailures = pct_failures,
+                 riskLevel = risk_level,
             ),
             map = map_edges,
             opportunities = opportunities,
         )
+        log("stats: returning", stats)
+        return stats
     
-    def payments(self):
-        return self._d.payments_history
+    def payments(self, fromIdx, toIdx):
+        if fromIdx is None:
+            fromIdx = 0
+        if toIdx is None:
+            toIdx = len(self._d.payments_history)
+        return self._d.payments_history[fromIdx:toIdx]
     
 # Binding   -------------------------------------------
 
@@ -442,12 +471,12 @@ _query = ObjectType("Query")
 @_query.field("staticData")
 def resolve_staticData(_, info):
     obj = _resolvers.staticData()
-    print("returning", obj)
+    log("returning", obj)
     return obj
 
 @_query.field("routes")
 def resolve_routes(_, info, payment):
-    print("routes requested for payment =", payment)
+    log("routes requested for payment =", payment)
     obj = _resolvers.routes(Payment(
         originBic = payment['originBic'],
         destinationBic = payment['destinationBic'],
@@ -455,19 +484,19 @@ def resolve_routes(_, info, payment):
         currency = payment['currency'],
         amount = payment['amount'],
     ))
-    print("returning", obj)
+    log("returning", obj)
     return obj
 
 @_query.field("stats")
 def resolve_stats(_, info):
     obj = _resolvers.stats()
-    print("returning", obj)
+    log("returning", obj)
     return obj
 
 @_query.field("payments")
-def resolve_payments(_, info):
-    obj = _resolvers.payments()
-    print("returning", obj)
+def resolve_payments(_, info, fromIdx, toIdx):
+    obj = _resolvers.payments(fromIdx, toIdx)
+    log("returning", obj)
     return obj
 
 schema = make_executable_schema(sdl, [ _query, fallback_resolvers ])
