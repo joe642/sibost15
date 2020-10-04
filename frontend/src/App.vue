@@ -35,6 +35,8 @@ h1 {
 #app {
   background-color: #f7f9f9;
   min-height: 100vh;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .blue-text {

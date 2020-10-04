@@ -14,7 +14,8 @@ export default new Vuex.Store({
       destinationBic: "",
       currency: ""
     },
-    routes: []
+    routes: [],
+    loading: false
   },
   mutations: {
     updateOriginalPayment (state, payload) {
