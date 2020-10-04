@@ -1,38 +1,57 @@
 <template>
   <ul class="route">
-    <li>
+    <li
+      v-if="route.hops.length > 0"
+    >
       <span>&nbsp;</span>
-      <div><strong>GBP 200</strong> 2d 12h 15m</div>
+      <div>
+        <strong v-tooltip.right="`BIC: ${route.hops[0].source.bic}`" class="bank-name">{{ route.hops[0].source.name }}</strong>
+        <i>{{ route.hops[0].target.countryName }} - {{ route.hops[0].target.city }}</i><br/>
+      </div>
     </li>
-    <li>
-      <span>&nbsp;</span>
-      <div><strong>GBP 200</strong> 2d 12h 15m</div>
-    </li>
-    <li>
-      <span>USD 50000</span>
-      <div><strong>GBP 200</strong> 2d 12h 15m</div>
-    </li>
-    <li>
-      <span></span>
-      <div><strong>GBP 200</strong> 2d 12h 15m</div>
-    </li>
-    <li>
-      <span></span>
-      <div><strong>GBP 200</strong> 2d 12h 15m</div>
-    </li>
-    <li>
-      <span></span>
-      <div><strong>GBP 200</strong> 2d 12h 15m</div>
+    <li
+      v-for="(hop, index) in route.hops"
+      :key="index"
+    >
+      <span>
+        <span class="fx-rate" v-if="hop.fxRate" v-tooltip.right="'FX Rate'">
+          {{ parseFloat(hop.fxRate).toFixed(2) }} {{ hop.payment.currency }}
+        </span>
+      </span>
+      <div>
+        <strong v-tooltip.right="`BIC: ${hop.target.bic}`" class="bank-name">{{ hop.target.name }}</strong> 
+        <i>{{ hop.target.countryName }} - {{ hop.target.city }}</i><br/>
+        <p class="time">{{ formatAsHours(hop.timeTakenMinutes) }}<br/></p>
+      </div>
     </li>
   </ul>
 </template>
 
+<script>
+export default {
+  props: {
+    route: {
+      type: Object,
+      required: true
+    }
+  },
+
+  methods: {
+    formatAsHours (totalMinutes) {
+      const hours = Math.floor(totalMinutes / 60);          
+      const minutes = totalMinutes % 60;
+
+      return `${hours}h${minutes}m`
+    }
+  },
+}
+</script>
 <style lang="scss" scoped>
 .route li {
   display: flex;
 }
 
-.route span {
+.route li > span {
   position: relative;
   color: #ff5252;
   padding: 11px 38px 0 0;
@@ -41,7 +60,7 @@
   font-size: 20px;
 }
 
-.route span::after {
+.route li > span::after {
   content: "";
   position: absolute;
   z-index: 2;
@@ -58,10 +77,11 @@
   line-height: 40px;
   letter-spacing: 9px;
   color: #212121;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 12px !important;
 }
 
 .route div {
-  padding: 4px 0.5em 6.5em 47px;
+  padding: 4px 0.5em 4.5em 47px;
   position: relative;
   min-width: 200px;
   display: block;
@@ -76,6 +96,10 @@
   border-left: 1px #ccc solid;
 }
 
+.route li:last-of-type div::before {
+  border: none;
+}
+
 .route strong {
   display: block;
   font-weight: bolder;
@@ -86,11 +110,19 @@
   width: 100%;
   display: block;
   margin: auto;
-  max-width: 500px;
+  max-width: 550px;
 }
 .route,
 .route *::before,
 .route *::after {
   box-sizing: border-box;
+}
+.time {
+  margin-top: 5px;
+    font-size: 20px;
+    color: #303f9f;
+}
+.bank-name {
+  font-size: 20px;
 }
 </style>

@@ -2,6 +2,7 @@
   <div id="app">
     <Header />
     <router-view />
+    <Toast />
   </div>
 </template>
 
@@ -70,14 +71,46 @@ h1 {
 .divider-color {
   border-color: #bdbdbd;
 }
+
+.card {
+  margin: 15px;
+  padding: 20px 15px;
+  width: 100%;
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 12px !important;
+  background-color: white;
+}
+.card-description {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  margin-top: 15px;
+  text-align: center;
+}
+.card-statistic {
+  font-family: "Montserrat", sans-serif;
+  text-align: center;
+  font-size: 42px;
+  margin-bottom: 25px;
+  margin-top: 18px;
+}
+.card-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 26px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  color: #212121;
+}
 </style>
 
 <script>
 import Header from "@/components/Header.vue";
+import Toast from "primevue/toast";
 
 export default {
   components: {
-    Header
+    Header,
+    Toast
   }
 };
 </script>

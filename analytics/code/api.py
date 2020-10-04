@@ -11,7 +11,9 @@ import numpy as np
 import networkx as nx
 
 # For API server use:
-_data_dir = 'analytics/data'
+# _data_dir = 'analytics/data'
+# On GCP use:
+_data_dir = '/mnt/gcp_data'
 # For Jupyter use:
 # _data_dir = '../../data'
 

@@ -1,7 +1,9 @@
 <template>
   <div class="header">
     <div class="p-grid">
-      <div class="p-col-2"></div>
+      <div class="p-col-2">
+        <img src="../assets/paydaylogosmall.jpeg" />
+      </div>
       <div class="p-col-4"></div>
       <div class="p-col-6">
         <div class="nav">
@@ -9,7 +11,7 @@
             <router-link to="/">Search</router-link>
           </div>
           <div class="nav-item">
-            <router-link to="/about">Payment History</router-link>
+            <router-link to="/analytics">Payment History</router-link>
           </div>
         </div>
       </div>
@@ -35,8 +37,12 @@
 
 .header {
   height: 80px;
-  margin-bottom: 80px;
+  margin-bottom: 50px;
   box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 12px !important;
   background-color: white;
+}
+img {
+    max-height: 60px;
+    margin: 8px 30px;
 }
 </style>
