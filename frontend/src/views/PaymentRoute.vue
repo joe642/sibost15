@@ -4,7 +4,7 @@
       <div class="p-col-4">
         <div class="card">
           <div class="risk-score-wrapper">
-            <span class="risk-score">30</span>
+            <span class="risk-score">{{ selectedRoute.risk }}</span>
           </div>
           <div class="card-description dark-text">
             Risk Rating
@@ -14,7 +14,7 @@
       <div class="p-col-4">
         <div class="card">
           <div class="card-statistic blue-text">
-            GBP 200
+            GBP {{ selectedRoute.totalTimeMinutes }}
           </div>
           <div class="card-description dark-text">
             Estimated Fees
@@ -24,7 +24,7 @@
       <div class="p-col-4">
         <div class="card">
           <div class="card-statistic blue-text">
-            2d 5h 34m
+            {{ formateAsHours(selectedRoute.totalTimeMinutes) }}
           </div>
           <div class="card-description dark-text">
             End-to-End Settlement Time
@@ -35,7 +35,9 @@
     <div class="p-grid">
       <div class="p-col-8">
         <div class="route-wrapper">
-          <PaymentRoute />
+          <PaymentRoute
+            :route="selectedRoute"
+          />
         </div>
       </div>
       <div class="p-col-4">
@@ -45,44 +47,26 @@
               Filters
             </div>
             <div class="card-body">
-              <h3>Route Preferences</h3>
-              <div class="p-field-radiobutton">
+              <h3>Available Routes</h3>
+              <div 
+                v-for="(route, index) in routes"
+                :key="index"
+                class="p-field-radiobutton"
+              >
                 <RadioButton
-                  id="city1"
-                  name="city"
-                  value="Chicago"
-                  v-model="city"
+                  :id="`route${index}`"
+                  :name="`route${index}`"
+                  :value="route"
+                  v-model="selectedRoute"
                 />
-                <label for="city1">Shortest Route</label>
-              </div>
-              <div class="p-field-radiobutton">
-                <RadioButton
-                  id="city2"
-                  name="city"
-                  value="Los Angeles"
-                  v-model="city"
-                />
-                <label for="city2">Lowest Fees</label>
-              </div>
-
-              <h3>Risk Appetite</h3>
-              <div class="p-field-radiobutton">
-                <RadioButton
-                  id="city1"
-                  name="city"
-                  value="Chicago"
-                  v-model="city"
-                />
-                <label for="city1">Least Risk</label>
-              </div>
-              <div class="p-field-radiobutton">
-                <RadioButton
-                  id="city2"
-                  name="city"
-                  value="Los Angeles"
-                  v-model="city"
-                />
-                <label for="city2">Medium</label>
+                <label :for="`route${index}`">
+                  {{ route.risk }} risk - Est. Time {{ formateAsHours(route.totalTimeMinutes) }} 
+                  <span
+                    v-if="index === 0"
+                    class="p-tag p-tag-success"
+                    style="margin-left: 20px;"
+                  > Reccomended</span>
+                </label>
               </div>
             </div>
           </div>
@@ -103,6 +87,61 @@ export default {
   components: {
     RadioButton,
     PaymentRoute
+  },
+
+  computed: {
+    routes () {
+      const routes = this.$store.state.routes.map((route) => {
+        const riskScoreMapping = {
+          'LO': 1,
+          'MD': 2,
+          'HI': 3
+        }
+
+        route.riskScore = riskScoreMapping[route.risk]
+        return route
+      })
+
+      let sortBy = [{
+        prop:'riskScore',
+        direction: 1
+      },{
+        prop:'totalTimeMinutes',
+        direction: 1
+      }];
+
+      return routes.sort(function(a, b){
+        let i = 0, result = 0;
+        while(i < sortBy.length && result === 0) {
+          result = sortBy[i].direction*(a[ sortBy[i].prop ].toString() < b[ sortBy[i].prop ].toString() ? -1 : (a[ sortBy[i].prop ].toString() > b[ sortBy[i].prop ].toString() ? 1 : 0));
+          i++;
+        }
+        return result;
+      })
+    }
+  },
+
+  data () {
+    return {
+      selectedRoute: {}
+    }
+  },
+
+  methods: {
+    formateAsHours (totalMinutes) {
+      const hours = Math.floor(totalMinutes / 60);          
+      const minutes = totalMinutes % 60;
+
+      return `${hours}h${minutes}m`
+    }
+  },
+
+  mounted () {
+    if (this.routes.length > 0) {
+      this.selectedRoute = this.routes[0]
+    } else {
+      this.$router.push({ path: "/" });
+    }
   }
 };
 </script>
@@ -112,28 +151,9 @@ export default {
   max-width: 1200px;
   display: block;
   margin: auto;
+  padding-bottom: 50px;
 }
-.card {
-  margin: 15px;
-  padding: 20px 15px;
-  width: 100%;
-  box-shadow: rgba(0, 0, 0, 0.08) 0px 1px 12px !important;
-  background-color: white;
-}
-.card-description {
-  font-size: 24px;
-  line-height: 32px;
-  font-weight: 600;
-  margin-top: 15px;
-  text-align: center;
-}
-.card-statistic {
-  font-family: "Montserrat", sans-serif;
-  text-align: center;
-  font-size: 42px;
-  margin-bottom: 25px;
-  margin-top: 18px;
-}
+
 .risk-score-wrapper {
   border: 2px solid red;
   border-radius: 50%;
