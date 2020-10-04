@@ -20,7 +20,7 @@
           />
         </div>
         <div v-else>
-          <p class="no-data">No payment details entered</p>
+          <p class="no-data">Please enter payment details</p>
         </div>
       </div>
       <div class="p-col-4">
