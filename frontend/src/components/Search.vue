@@ -73,36 +73,9 @@ import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputNumber from "primevue/inputnumber";
-import gql from 'graphql-tag'
 
 import currencies from "../assets/currencies.json"
-
-const GET_STATIC_DATA_QUERY = gql`
-  query {
-    staticData {
-      assetCategories
-      destinations {
-        party {
-          bdp
-          bic
-          name
-          countryCode
-          countryName
-          city
-        }
-        accounts
-      }
-      origins {
-        bdp
-        bic
-        name
-        countryCode
-        countryName
-        city
-      }
-    }
-  }
-`
+import { GET_STATIC_DATA_QUERY } from "../graphql/StaticData"
 
 export default {
   name: "Search",
