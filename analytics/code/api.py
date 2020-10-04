@@ -11,17 +11,10 @@ import numpy as np
 import networkx as nx
 
 # For API server use:
-<<<<<<< HEAD
 _data_dir = '/mnt/gcp_data'
-from datasets import Datasets
-from gql_types import *
-from temporary_generator import TemporaryGenerator
-=======
-_data_dir = 'analytics/data'
 # from .datasets import Datasets
 # from .gql_types import *
 # from .temporary_generator import TemporaryGenerator
->>>>>>> 9bb8176315c7a644f89141f85cc92876a4faa7cf
 # For Jupyter use:
 # _data_dir = '../../data'
 from datasets import Datasets
