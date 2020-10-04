@@ -59,7 +59,7 @@
                             </template>
                         </Column>
                         <template #expansion="slotProps">
-                            <div class="orders-subtable">
+                            <div class="detail">
                                 <div class="p-grid">
                                     <div class="p-col-4">
                                         <h4>Source</h4>
@@ -91,6 +91,16 @@
                 </div>
             </div>
         </div>
+
+        <div class="p-grid">
+            <div class="p-col-12">
+                <div class="card">
+                    <h3 class="card-title">Payment Destinations</h3>
+                    <img src="../assets/sample.svg" />
+                </div>
+            </div>
+        </div>
+
         <div class="p-grid">
             <div class="p-col-12">
                 <div class="card">
@@ -231,5 +241,11 @@ h3 {
 }
 .card {
     padding: 20px;
+}
+.detail h4 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    line-height: 20px;
+    margin-top: 10px;
 }
 </style>
