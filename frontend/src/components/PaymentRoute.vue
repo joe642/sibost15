@@ -13,7 +13,11 @@
       v-for="(hop, index) in route.hops"
       :key="index"
     >
-      <span>&nbsp;</span>
+      <span>
+        <span class="fx-rate" v-if="hop.fxRate" v-tooltip.right="'FX Rate'">
+          {{ parseFloat(hop.fxRate).toFixed(2) }} {{ hop.payment.currency }}
+        </span>
+      </span>
       <div>
         <strong v-tooltip.right="`BIC: ${hop.target.bic}`" class="bank-name">{{ hop.target.name }}</strong> 
         <i>{{ hop.target.countryName }} - {{ hop.target.city }}</i><br/>
@@ -47,7 +51,7 @@ export default {
   display: flex;
 }
 
-.route span {
+.route li > span {
   position: relative;
   color: #ff5252;
   padding: 11px 38px 0 0;
@@ -56,7 +60,7 @@ export default {
   font-size: 20px;
 }
 
-.route span::after {
+.route li > span::after {
   content: "";
   position: absolute;
   z-index: 2;
