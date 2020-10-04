@@ -75,7 +75,7 @@
                 <label :for="`route${index}`">
                   {{ riskLabels[route.risk] }} risk - {{ formatAsHours(route.totalTimeMinutes) }}*
                   <span
-                    v-if="index === 0"
+                    v-if="index === 0 && route.risk === 'LO'"
                     class="p-tag p-tag-success"
                     style="margin-left: 20px;"
                   > Reccommended</span>
