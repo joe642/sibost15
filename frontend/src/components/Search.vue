@@ -73,6 +73,8 @@ import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputNumber from "primevue/inputnumber";
+import { required } from 'vuelidate/lib/validators'
+
 
 import currencies from "../assets/currencies.json"
 import { GET_STATIC_DATA_QUERY } from "../graphql/StaticData"
@@ -99,6 +101,26 @@ export default {
     }
   },
 
+  validations: {
+    form: {
+      assetCategory: {
+        required,
+      },
+      originBic: {
+        required
+      },
+      amount: {
+        required
+      },
+      destinationBic: {
+        required
+      },
+      currency: {
+        required
+    }
+    }
+  },
+
   data() {
     return {
       form: {
@@ -120,7 +142,12 @@ export default {
 
   methods: {
     handleSubmit() {
-      this.$router.push({ path: "payment-route" });
+      this.$v.$touch()
+      if (this.$v.$invalid) {
+        this.$toast.add({severity:'error', summary: 'Validation Error', detail:'Please complete all required fields', life: 3000});
+      } else {
+        this.$router.push({ path: "payment-route" });
+      }
     },
     searchCurrency (event) {
         setTimeout(() => {
@@ -137,11 +164,8 @@ export default {
   },
 
   async mounted () {
-      // this.loading = true
       const queryResponse = await this.$apollo.query({ query: GET_STATIC_DATA_QUERY })
       this.data = queryResponse.data.staticData
-      // this.loading = false
-
       this.currencies = Object.values(currencies)
   }
 };

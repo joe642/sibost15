@@ -2,6 +2,7 @@
   <div id="app">
     <Header />
     <router-view />
+    <Toast />
   </div>
 </template>
 
@@ -74,10 +75,12 @@ h1 {
 
 <script>
 import Header from "@/components/Header.vue";
+import Toast from 'primevue/toast';
 
 export default {
   components: {
-    Header
+    Header,
+    Toast
   }
 };
 </script>
