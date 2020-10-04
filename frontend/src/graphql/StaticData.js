@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import gql from "graphql-tag";
 
 export const GET_STATIC_DATA_QUERY = gql`
   query {
@@ -25,4 +25,4 @@ export const GET_STATIC_DATA_QUERY = gql`
       }
     }
   }
-`
+`;

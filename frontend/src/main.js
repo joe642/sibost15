@@ -2,15 +2,17 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import Vuelidate from 'vuelidate'
+import Vuelidate from "vuelidate";
 
 import "primeflex/primeflex.css";
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
 import "primevue/resources/themes/mdc-light-indigo/theme.css";
-import ToastService from 'primevue/toastservice';
+import ToastService from "primevue/toastservice";
 import { createProvider } from "./vue-apollo";
+import Tooltip from 'primevue/tooltip';
 
+Vue.directive('tooltip', Tooltip);
 Vue.config.productionTip = false;
 Vue.use(ToastService);
 Vue.use(Vuelidate);

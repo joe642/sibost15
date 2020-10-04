@@ -4,18 +4,20 @@
       <h1>Search Payment Route</h1>
       <div class="p-fluid">
         <div class="p-field">
-          <label for="lastname">Origin BIC</label>
-          <Dropdown
+          <!--<label for="lastname">Origin BIC</label>
+           <Dropdown
             v-model="form.originBic"
             :options="data.origins"
             optionLabel="name"
-            optionValue="bic"
+            optionValue="bdp"
             placeholder="Search for a BIC"
           >
             <template #option="slotProps">
-              <span>{{ slotProps.option.bic }} - {{ slotProps.option.name }}</span>
+              <span
+                >{{ slotProps.option.bic }} - {{ slotProps.option.name }}</span
+              >
             </template>
-          </Dropdown>
+          </Dropdown>-->
         </div>
         <div class="p-field">
           <label for="lastname">Destination BIC</label>
@@ -23,11 +25,13 @@
             v-model="form.destinationBic"
             :options="destinationBics"
             optionLabel="name"
-            optionValue="bic"
+            optionValue="bdp"
             placeholder="Search for a BIC"
           >
             <template #option="slotProps">
-              <span>{{ slotProps.option.bic }} - {{ slotProps.option.name }}</span>
+              <span
+                >{{ slotProps.option.bic }} - {{ slotProps.option.name }}</span
+              >
             </template>
           </Dropdown>
         </div>
@@ -45,20 +49,21 @@
             v-model="form.amount"
             id="amount"
             mode="decimal"
-            :minFractionDigits="2" 
+            :minFractionDigits="2"
           />
         </div>
         <div class="p-field">
           <label for="currency">Currency</label>
           <AutoComplete
-            v-model="form.currency"
+            v-model="selectedCurrency"
+            @item-select="selectCurrency($event)"
             :suggestions="filteredCurrencies"
             @complete="searchCurrency($event)"
             :dropdown="true"
             field="code"
           >
             <template #item="slotProps">
-              <div>{{slotProps.item.code}} - {{slotProps.item.name}}</div>
+              <div>{{ slotProps.item.code }} - {{ slotProps.item.name }}</div>
             </template>
           </AutoComplete>
         </div>
@@ -73,11 +78,10 @@ import AutoComplete from "primevue/autocomplete";
 import Button from "primevue/button";
 import Dropdown from "primevue/dropdown";
 import InputNumber from "primevue/inputnumber";
-import { required } from 'vuelidate/lib/validators'
+import { required } from "vuelidate/lib/validators";
 
-
-import currencies from "../assets/currencies.json"
-import { GET_STATIC_DATA_QUERY } from "../graphql/StaticData"
+import currencies from "../assets/currencies.json";
+import { GET_STATIC_DATA_QUERY } from "../graphql/StaticData";
 
 export default {
   name: "Search",
@@ -94,19 +98,16 @@ export default {
   },
 
   computed: {
-    destinationBics () {
-      return this.data.destinations.map((destination) => {
-        return destination.party
-      })
+    destinationBics() {
+      return this.data.destinations.map(destination => {
+        return destination.party;
+      });
     }
   },
 
   validations: {
     form: {
       assetCategory: {
-        required,
-      },
-      originBic: {
         required
       },
       amount: {
@@ -117,7 +118,7 @@ export default {
       },
       currency: {
         required
-    }
+      }
     }
   },
 
@@ -125,7 +126,7 @@ export default {
     return {
       form: {
         assetCategory: "",
-        originBic: "",
+        originBic: "BD_CLIENT_Z2",
         amount: 0,
         destinationBic: "",
         currency: ""
@@ -136,37 +137,57 @@ export default {
         destinations: []
       },
       currencies: [],
-      filteredCurrencies: []
+      filteredCurrencies: [],
+      selectedCurrency: null
     };
   },
 
   methods: {
-    handleSubmit() {
-      this.$v.$touch()
+    async handleSubmit () {
+      this.$v.$touch();
+
+      console.log(JSON.stringify(this.form));
       if (this.$v.$invalid) {
-        this.$toast.add({severity:'error', summary: 'Validation Error', detail:'Please complete all required fields', life: 3000});
+        this.$toast.add({
+          severity: "error",
+          summary: "Validation Error",
+          detail: "Please complete all required fields",
+          life: 3000
+        });
       } else {
-        this.$router.push({ path: "payment-route" });
+        this.$store.commit('updateOriginalPayment', this.form)
+        const response = await this.$store.dispatch('getPaymentRoute', this.$apollo)
+        
+        if (response.data) {
+          this.$router.push({ path: "payment-route" });
+        }
       }
     },
-    searchCurrency (event) {
-        setTimeout(() => {
-            if (!event.query.trim().length) {
-                this.filteredCurrencies = [...this.currencies];
-            }
-            else {
-                this.filteredCurrencies = this.currencies.filter((currency) => {
-                    return currency.code.toLowerCase().startsWith(event.query.toLowerCase());
-                });
-            }
-        }, 10);
+    searchCurrency(event) {
+      setTimeout(() => {
+        if (!event.query.trim().length) {
+          this.filteredCurrencies = [...this.currencies];
+        } else {
+          this.filteredCurrencies = this.currencies.filter(currency => {
+            return currency.code
+              .toLowerCase()
+              .startsWith(event.query.toLowerCase());
+          });
+        }
+      }, 10);
+    },
+    selectCurrency(event) {
+      this.form.currency = event.value.code;
     }
   },
 
-  async mounted () {
-      const queryResponse = await this.$apollo.query({ query: GET_STATIC_DATA_QUERY })
-      this.data = queryResponse.data.staticData
-      this.currencies = Object.values(currencies)
+  async mounted() {
+    const queryResponse = await this.$apollo.query({
+      query: GET_STATIC_DATA_QUERY
+    });
+    this.data = queryResponse.data.staticData;
+    this.currencies = Object.values(currencies);
+    console.log(this.$store)
   }
 };
 </script>
