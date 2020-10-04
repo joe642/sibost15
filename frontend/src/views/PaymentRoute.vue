@@ -24,7 +24,7 @@
       <div class="p-col-4">
         <div class="card">
           <div class="card-statistic blue-text">
-            {{ formateAsHours(selectedRoute.totalTimeMinutes) }}
+            {{ formatAsHours(selectedRoute.totalTimeMinutes) }}
           </div>
           <div class="card-description dark-text">
             End-to-End Settlement Time
@@ -60,7 +60,7 @@
                   v-model="selectedRoute"
                 />
                 <label :for="`route${index}`">
-                  {{ route.risk }} risk - Est. Time {{ formateAsHours(route.totalTimeMinutes) }} 
+                  {{ route.risk }} risk - Est. Time {{ formatAsHours(route.totalTimeMinutes) }} 
                   <span
                     v-if="index === 0"
                     class="p-tag p-tag-success"
@@ -128,7 +128,7 @@ export default {
   },
 
   methods: {
-    formateAsHours (totalMinutes) {
+    formatAsHours (totalMinutes) {
       const hours = Math.floor(totalMinutes / 60);          
       const minutes = totalMinutes % 60;
 
