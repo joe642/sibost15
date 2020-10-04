@@ -42,7 +42,7 @@
                   Estimated Fees
                 </div>
                 <div class="p-col-6">
-                  <span v-if="routes.length && routes.length >0" class="summary-stat">GBP {{ selectedRoute.totalTimeMinutes }}</span>
+                  <span v-if="routes.length && routes.length >0" class="summary-stat">{{ selectedRoute.originalPayment.currency }} {{ selectedRoute.totalTimeMinutes }}</span>
                   <span v-else>No route selected</span>
                 </div>
                 <div class="p-col-6">
