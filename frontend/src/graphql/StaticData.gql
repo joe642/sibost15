@@ -1,4 +1,4 @@
-query StaticData {
+query {
   staticData {
     assetCategories
     destinations {
@@ -16,7 +16,7 @@ query StaticData {
       bdp
       bic
       name
-      countryCodes
+      countryCode
       countryName
       city
     }
