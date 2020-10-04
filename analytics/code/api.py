@@ -12,11 +12,9 @@ import networkx as nx
 
 # For API server use:
 _data_dir = 'analytics/data'
-# from .datasets import Datasets
-# from .gql_types import *
-# from .temporary_generator import TemporaryGenerator
 # For Jupyter use:
 # _data_dir = '../../data'
+
 from datasets import Datasets
 from gql_types import *
 from temporary_generator import TemporaryGenerator
@@ -28,9 +26,9 @@ _num_payments = 10000
 
 def log(*args):
     # For API server use:
-    app.logger.info(' '.join(['%s' for arg in args]), *args)
+#     app.logger.info(' '.join(['%s' for arg in args]), *args)
     # For Jupyter use:
-#     print(*args)
+    print(*args)
 
 # Schema    -------------------------------------------
 
@@ -120,9 +118,16 @@ sdl = gql("""
     }
 
     type MapEdge {
-         sourceCity: String!
-         targetCity: String!
+         countrySource: Country!
+         countryTarget: Country!
          weight: Float!
+    }
+    
+    type Country {
+        code2: String!
+        code3: String!
+        name: String!
+        risk: RiskLevel!
     }
 
     type Opportunity {
@@ -389,20 +394,61 @@ class DatasetsResolvers:
         risk_level = ['LO','MD','HI'][round(sum([self.risk2num(route.risk) for route in routes]) / len(routes))]
 
         log("stats: calculating map edges")
-        source_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.originBic for payment in payments ]) }
-        target_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.destinationBic for payment in payments ]) }
-        source_cities = [ source_parties[payment.originBic] if payment.originBic in source_parties else None for payment in payments ]
-        target_cities = [ target_parties[payment.destinationBic] if payment.destinationBic in target_parties else None for payment in payments ]
-        weights = [ route.originalPayment.amount for route in routes ]
-
-        log("stats: making map edges df")
-        map_edges = pd.DataFrame.from_records(
-            zip(source_cities, target_cities, weights),
-            columns = [ 'source_city', 'target_city', 'weight' ]
-        ).dropna().groupby([ 'source_city', 'target_city' ]).sum().reset_index().apply(
-            lambda x: MapEdge(x['source_city'], x['target_city'], x['weight']),
+        country = self._d.country.assign(
+            country = lambda x: x.apply(lambda y: {
+                'code2': y['ISO COUNTRY CODE'],
+                'code3': y['code'],
+                'risk': y['riskClassificationNumeric'],
+                'name': y['name'],
+            }, axis = 1)
+        )[['ISO COUNTRY CODE', 'country']]
+        payment_bdps = pd.DataFrame.from_records(
+            [ (payment.originBic, payment.destinationBic, payment.amount) for payment in payments ],
+            columns = ['source_bdp', 'target_bdp', 'amount'],
+        ).merge(
+            self._d.bdp[['RECORD KEY', 'ISO COUNTRY CODE']],
+            left_on = 'source_bdp',
+            right_on = 'RECORD KEY',
+        ).merge(
+            self._d.bdp[['RECORD KEY', 'ISO COUNTRY CODE']],
+            left_on = 'target_bdp',
+            right_on = 'RECORD KEY',
+            suffixes = (' of SOURCE', ' of TARGET')
+        )[[
+            'ISO COUNTRY CODE of SOURCE',
+            'ISO COUNTRY CODE of TARGET',
+            'amount',
+        ]].groupby(['ISO COUNTRY CODE of SOURCE', 'ISO COUNTRY CODE of TARGET']).sum().reset_index().merge(
+            country,
+            left_on = 'ISO COUNTRY CODE of SOURCE',
+            right_on = 'ISO COUNTRY CODE',
+        ).merge(
+            country,
+            left_on = 'ISO COUNTRY CODE of TARGET',
+            right_on = 'ISO COUNTRY CODE',
+            suffixes = ('Source', 'Target'),
+        ).drop(columns = ['ISO COUNTRY CODESource', 'ISO COUNTRY CODETarget'])
+        map_edges = payment_bdps.apply(
+            lambda x: MapEdge(
+                x['countrySource'],
+                x['countryTarget'],
+                x['amount'],
+            ),
             axis = 1
-        ).values
+        ).values        
+#         source_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.originBic for payment in payments ]) }
+#         target_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.destinationBic for payment in payments ]) }
+#         source_cities = [ source_parties[payment.originBic] if payment.originBic in source_parties else None for payment in payments ]
+#         target_cities = [ target_parties[payment.destinationBic] if payment.destinationBic in target_parties else None for payment in payments ]
+#         weights = [ route.originalPayment.amount for route in routes ]
+#         log("stats: making map edges df")
+#         map_edges = pd.DataFrame.from_records(
+#             zip(source_cities, target_cities, weights),
+#             columns = [ 'source_city', 'target_city', 'weight' ]
+#         ).dropna().groupby([ 'source_city', 'target_city' ]).sum().reset_index().apply(
+#             lambda x: MapEdge(x['source_city'], x['target_city'], x['weight']),
+#             axis = 1
+#         ).values
 
         log("stats: calculating opportunities")
         opportunities = pd.DataFrame.from_records(

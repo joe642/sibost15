@@ -2,9 +2,6 @@ import pandas as pd
 import networkx as nx
 import numpy as np
 
-# For API server use:
-# from .generator import Generator
-# For Jupyter use:
 from generator import Generator
 
 def _read_tsv(path):

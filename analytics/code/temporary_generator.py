@@ -2,9 +2,6 @@ import pandas as pd
 import networkx as nx
 import random
 
-# For API server use:
-# from .gql_types import *
-# For Jupyter use:
 from gql_types import *
 
 # smart things do not happen here.
@@ -141,7 +138,7 @@ class TemporaryGenerator:
         for src, tgt in segments:
             charge = round(self.r.triangular(
                 0,
-                previous_payment.amount * 0.0004,
+                previous_payment.amount * 0.02,
             ))
             reduced_amount = previous_payment.amount - charge
             edge = ssi_nx.edges[src, tgt]

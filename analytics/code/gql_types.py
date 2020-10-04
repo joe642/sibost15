@@ -66,8 +66,8 @@ class Stats:
 
 @dataclass
 class MapEdge:
-    sourceCity: object
-    targetCity: object
+    countrySource: object
+    countryTarget: object
     weight: object
 
 @dataclass
