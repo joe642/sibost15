@@ -1,0 +1,247 @@
+	name	code	riskClassificationNumeric	ISO COUNTRY CODE
+0	Aruba	ABW	HI	AW
+1	Angola	AGO	HI	AO
+2	Anguilla	AIA	HI	AI
+3	Åland Islands	ALA	HI	AX
+4	Albania	ALB	HI	AL
+5	Andorra	AND	LO	AD
+6	United Arab Emirates	ARE	MD	AE
+7	Argentina	ARG	HI	AR
+8	Armenia	ARM	HI	AM
+9	American Samoa	ASM	HI	AS
+10	French Southern Territories	ATF	HI	TF
+11	Antigua and Barbuda	ATG	HI	AG
+12	Australia	AUS	LO	AU
+13	Austria	AUT	LO	AT
+14	Azerbaijan	AZE	HI	AZ
+15	Burundi	BDI	HI	BI
+16	Belgium	BEL	LO	BE
+17	Benin	BEN	HI	BJ
+18	Bonaire, Sint Eustatius and Saba	BES	HI	BQ
+19	Burkina Faso	BFA	HI	BF
+20	Bangladesh	BGD	HI	BD
+21	Bulgaria	BGR	MD	BG
+22	Bahrain	BHR	MD	BH
+23	The Bahamas	BHS	HI	BS
+24	Bosnia and Herzegovina	BIH	HI	BA
+25	Saint Barthélemy	BLM	HI	BL
+26	Belarus	BLR	HI	BY
+27	Belize	BLZ	HI	BZ
+28	Bermuda	BMU	LO	BM
+29	Bolivia	BOL	HI	BO
+30	Brazil	BRA	HI	BR
+31	Barbados	BRB	HI	BB
+32	Brunei Darussalam	BRN	HI	BN
+33	Bhutan	BTN	HI	BT
+34	Bouvet Island	BVT	HI	BV
+35	Botswana	BWA	HI	BW
+36	Central African Republic	CAF	HI	CF
+37	Canada	CAN	LO	CA
+38	Cocos (Keeling) Islands	CCK	HI	CC
+39	Switzerland	CHE	LO	CH
+40	Chile	CHL	MD	CL
+41	China	CHN	HI	CN
+42	Côte d'Ivoire	CIV	HI	CI
+43	Cameroon	CMR	HI	CM
+44	Democratic Republic of Congo	COD	HI	CD
+45	Republic of Congo	COG	HI	CG
+46	Cook Islands	COK	HI	CK
+47	Colombia	COL	HI	CO
+48	Comoros	COM	HI	KM
+49	Cape Verde	CPV	HI	CV
+50	Costa Rica	CRI	MD	CR
+51	Cuba	CUB	HI	CU
+52	Curaçao	CUW	HI	CW
+53	Christmas Island	CXR	HI	CX
+54	Cayman Islands	CYM	HI	KY
+55	Cyprus	CYP	MD	CY
+56	Czech Republic	CZE	MD	CZ
+57	Germany	DEU	MD	DE
+58	Djibouti	DJI	HI	DJ
+59	Dominica	DMA	HI	DM
+60	Denmark	DNK	LO	DK
+61	Dominican Republic	DOM	HI	DO
+62	Algeria	DZA	HI	DZ
+63	Ecuador	ECU	HI	EC
+64	Egypt	EGY	HI	EG
+65	Eritrea	ERI	HI	ER
+66	Western Sahara	ESH	HI	EH
+67	Spain	ESP	LO	ES
+68	Estonia	EST	LO	EE
+69	Ethiopia	ETH	HI	ET
+70	Finland	FIN	LO	FI
+71	Fiji	FJI	HI	FJ
+72	Falkland Islands (Malvinas)	FLK	HI	FK
+73	France	FRA	LO	FR
+74	Faroe Islands	FRO	HI	FO
+75	Micronesia	FSM	HI	FM
+76	Gabon	GAB	HI	GA
+77	United Kingdom	GBR	LO	GB
+78	Georgia	GEO	HI	GE
+79	Guernsey	GGY	MD	GG
+80	Ghana	GHA	HI	GH
+81	Gibraltar	GIB	MD	GI
+82	Guinea	GIN	HI	GN
+83	Guadeloupe	GLP	HI	GP
+84	The Gambia	GMB	HI	GM
+85	Guinea-Bissau	GNB	HI	GW
+86	Equatorial Guinea	GNQ	HI	GQ
+87	Greece	GRC	MD	GR
+88	Grenada	GRD	HI	GD
+89	Greenland	GRL	HI	GL
+90	Guatemala	GTM	HI	GT
+91	French Guiana	GUF	HI	GF
+92	Guam	GUM	HI	GU
+93	Guyana	GUY	HI	GY
+94	Hong Kong SAR	HKG	LO	HK
+95	Heard Island and McDonald Islands	HMD	HI	HM
+96	Honduras	HND	HI	HN
+97	Croatia	HRV	HI	HR
+98	Haiti	HTI	HI	HT
+99	Hungary	HUN	MD	HU
+100	Indonesia	IDN	HI	ID
+101	Isle of Man	IMN	LO	IM
+102	India	IND	HI	IN
+103	British Indian Ocean Territory	IOT	HI	IO
+104	Ireland	IRL	LO	IE
+105	Islamic Republic of Iran	IRN	HI	IR
+106	Iraq	IRQ	HI	IQ
+107	Iceland	ISL	LO	IS
+108	Israel	ISR	LO	IL
+109	Italy	ITA	MD	IT
+110	Jamaica	JAM	HI	JM
+111	Jersey	JEY	LO	JE
+112	Jordan	JOR	HI	JO
+113	Japan	JPN	MD	JP
+114	Kazakhstan	KAZ	HI	KZ
+115	Kenya	KEN	HI	KE
+116	Kyrgyz Republic	KGZ	HI	KG
+117	Cambodia	KHM	HI	KH
+118	Kiribati	KIR	HI	KI
+119	St. Kitts and Nevis	KNA	HI	KN
+120	Korea	KOR	MD	KR
+121	Kuwait	KWT	HI	KW
+122	Lao People's Democratic Republic	LAO	HI	LA
+123	Lebanon	LBN	HI	LB
+124	Liberia	LBR	HI	LR
+125	Libya	LBY	HI	LY
+126	St. Lucia	LCA	HI	LC
+127	Liechtenstein	LIE	MD	LI
+128	Sri Lanka	LKA	HI	LK
+129	Lesotho	LSO	HI	LS
+130	Lithuania	LTU	LO	LT
+131	Luxembourg	LUX	MD	LU
+132	Latvia	LVA	MD	LV
+133	Macao	MAC	MD	MO
+134	Saint Martin (French part)	MAF	HI	MF
+135	Morocco	MAR	HI	MA
+136	Monaco	MCO	HI	MC
+137	Moldova	MDA	HI	MD
+138	Madagascar	MDG	HI	MG
+139	Maldives	MDV	HI	MV
+140	Mexico	MEX	HI	MX
+141	Marshall Islands	MHL	HI	MH
+142	North Macedonia	MKD	HI	MK
+143	Mali	MLI	HI	ML
+144	Malta	MLT	MD	MT
+145	Myanmar	MMR	HI	MM
+146	Montenegro	MNE	HI	ME
+147	Mongolia	MNG	HI	MN
+148	Northern Mariana Islands	MNP	HI	MP
+149	Mozambique	MOZ	HI	MZ
+150	Mauritania	MRT	HI	MR
+151	Montserrat	MSR	HI	MS
+152	Martinique	MTQ	HI	MQ
+153	Mauritius	MUS	MD	MU
+154	Malawi	MWI	HI	MW
+155	Malaysia	MYS	MD	MY
+156	Mayotte	MYT	HI	YT
+157	Namibia	NAM	HI	NA
+158	New Caledonia	NCL	HI	NC
+159	Niger	NER	HI	NE
+160	Norfolk Island	NFK	HI	NF
+161	Nigeria	NGA	HI	NG
+162	Nicaragua	NIC	HI	NI
+163	Niue	NIU	HI	NU
+164	Netherlands	NLD	HI	NL
+165	Norway	NOR	LO	NO
+166	Nepal	NPL	HI	NP
+167	Nauru	NRU	HI	NR
+168	New Zealand	NZL	LO	NZ
+169	Oman	OMN	HI	OM
+170	Pakistan	PAK	HI	PK
+171	Panama	PAN	HI	PA
+172	Pitcairn	PCN	HI	PN
+173	Peru	PER	HI	PE
+174	Philippines	PHL	HI	PH
+175	Palau	PLW	HI	PW
+176	Papua New Guinea	PNG	HI	PG
+177	Poland	POL	HI	PL
+178	Puerto Rico	PRI	HI	PR
+179	North Korea	PRK	HI	KP
+180	Portugal	PRT	LO	PT
+181	Paraguay	PRY	HI	PY
+182	Palestine	PSE	HI	PS
+183	French Polynesia	PYF	HI	PF
+184	Qatar	QAT	HI	QA
+185	Réunion	REU	HI	RE
+186	Romania	ROU	HI	RO
+187	Russia	RUS	HI	RU
+188	Rwanda	RWA	HI	RW
+189	Saudi Arabia	SAU	MD	SA
+190	Sudan	SDN	HI	SD
+191	Senegal	SEN	HI	SN
+192	Singapore	SGP	LO	SG
+193	Saint Helena, Ascension and Tristan da Cunha	SHN	HI	SH
+194	Svalbard and Jan Mayen	SJM	HI	SJ
+195	Solomon Islands	SLB	HI	SB
+196	Sierra Leone	SLE	HI	SL
+197	El Salvador	SLV	HI	SV
+198	San Marino	SMR	HI	SM
+199	Somalia	SOM	HI	SO
+200	Saint Pierre and Miquelon	SPM	HI	PM
+201	Serbia	SRB	HI	RS
+202	South Sudan	SSD	HI	SS
+203	São Tomé and Príncipe	STP	HI	ST
+204	Suriname	SUR	HI	SR
+205	Slovak Republic	SVK	HI	SK
+206	Slovenia	SVN	LO	SI
+207	Sweden	SWE	LO	SE
+208	Eswatini	SWZ	HI	SZ
+209	Sint Maarten (Dutch part)	SXM	HI	SX
+210	Seychelles	SYC	HI	SC
+211	Syrian Arab Republic	SYR	HI	SY
+212	Turks and Caicos Islands	TCA	HI	TC
+213	Chad	TCD	HI	TD
+214	Togo	TGO	HI	TG
+215	Thailand	THA	HI	TH
+216	Tajikistan	TJK	HI	TJ
+217	Tokelau	TKL	HI	TK
+218	Turkmenistan	TKM	HI	TM
+219	East Timor	TLS	HI	TL
+220	Tonga	TON	HI	TO
+221	Trinidad and Tobago	TTO	HI	TT
+222	Tunisia	TUN	HI	TN
+223	Turkey	TUR	HI	TR
+224	Tuvalu	TUV	HI	TV
+225	Taiwan	TWN	LO	TW
+226	Tanzania	TZA	HI	TZ
+227	Uganda	UGA	HI	UG
+228	Ukraine	UKR	HI	UA
+229	United States Minor Outlying Islands	UMI	HI	UM
+230	Uruguay	URY	LO	UY
+231	United States	USA	LO	US
+232	Uzbekistan	UZB	HI	UZ
+233	Holy See	VAT	HI	VA
+234	St. Vincent and the Grenadines	VCT	HI	VC
+235	Venezuela	VEN	HI	VE
+236	Virgin Islands (British)	VGB	HI	VG
+237	U.S. Virgin Islands	VIR	HI	VI
+238	Vietnam	VNM	HI	VN
+239	Vanuatu	VUT	HI	VU
+240	Wallis and Futuna	WLF	HI	WF
+241	Samoa	WSM	MD	WS
+242	Republic of Yemen	YEM	HI	YE
+243	South Africa	ZAF	HI	ZA
+244	Zambia	ZMB	HI	ZM
+245	Zimbabwe	ZWE	HI	ZW

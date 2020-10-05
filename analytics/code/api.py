@@ -3,19 +3,34 @@ from flask_cors import CORS
 from ariadne.constants import PLAYGROUND_HTML
 from ariadne import gql, ObjectType, graphql_sync,make_executable_schema, fallback_resolvers
 from ariadne.asgi import GraphQL
-
-from dataclasses import dataclass
-
 import sys
+
+import pandas as pd
+from dataclasses import dataclass
 import numpy as np
 import networkx as nx
 
 # For API server use:
+# _data_dir = 'analytics/data'
+# On GCP use:
 _data_dir = '/mnt/gcp_data'
-from datasets import Datasets
 # For Jupyter use:
-# from datasets import Datasets
 # _data_dir = '../../data'
+
+from datasets import Datasets
+from gql_types import *
+from temporary_generator import TemporaryGenerator
+
+_generator = TemporaryGenerator(
+    num_suppliers = 50
+)
+_num_payments = 10000
+
+def log(*args):
+    # For API server use:
+#     app.logger.info(' '.join(['%s' for arg in args]), *args)
+    # For Jupyter use:
+    print(*args)
 
 # Schema    -------------------------------------------
 
@@ -24,6 +39,7 @@ sdl = gql("""
         staticData: StaticData!
         routes(payment: PaymentInput!): [ Route! ]!
         stats: Stats!
+        payments(fromIdx: Int, toIdx: Int): [ Payment! ]!
     }
 
     type StaticData {
@@ -52,6 +68,9 @@ sdl = gql("""
         assetCategory: String!
         currency: String!
         amount: Float!
+        timestampMinutes: Int
+        status: String
+        gCaseId: String
     }
     
     input PaymentInput {
@@ -69,6 +88,7 @@ sdl = gql("""
          fxRate: Float # optional
          timeTakenMinutes: Int!
          crossBorder: Boolean!
+         charge: Float!
     }
 
     type Route {
@@ -77,6 +97,7 @@ sdl = gql("""
         risk: RiskLevel!
         totalFee: Float
         totalTimeMinutes: Int
+        success: Boolean
     }
     
     enum RiskLevel {
@@ -89,6 +110,7 @@ sdl = gql("""
          totalVolume: Float!
          averageTimeMinutes: Int!
          pctFailures: Float!
+         riskLevel: RiskLevel!
     }
 
     type Stats {
@@ -98,9 +120,16 @@ sdl = gql("""
     }
 
     type MapEdge {
-         sourceCity: String!
-         targetCity: String!
+         countrySource: Country!
+         countryTarget: Country!
          weight: Float!
+    }
+    
+    type Country {
+        code2: String!
+        code3: String!
+        name: String!
+        risk: RiskLevel!
     }
 
     type Opportunity {
@@ -109,77 +138,6 @@ sdl = gql("""
          summary: Summary!
     }
 """)
-
-# Types     -------------------------------------------
-
-@dataclass
-class StaticData:
-    origins: object
-    destinations: object
-    assetCategories: object
-
-@dataclass
-class Party:
-    bdp: object
-    bic: object
-    name: object
-    countryCode: object
-    countryName: object
-    city: object
-
-@dataclass
-class Destination:
-    party: object
-    accounts: object
-
-@dataclass
-class Payment:
-    originBic: object
-    destinationBic: object
-    assetCategory: object
-    currency: object
-    amount: object
-
-@dataclass
-class Hop:
-    source: object
-    target: object
-    payment: object
-    fxRate: object
-    timeTakenMinutes: object
-    crossBorder: object
-
-@dataclass
-class Route:
-    originalPayment: object
-    hops: object
-    risk: object
-    totalFee: object
-    totalTimeMinutes: object
-
-@dataclass
-class Summary:
-    totalVolume: object
-    averageTimeMinutes: object
-    pctFailures: object
-
-@dataclass
-class Stats:
-    summary: object
-    map: object
-    opportunities: object
-
-@dataclass
-class MapEdge:
-    sourceCity: object
-    targetCity: object
-    weight: object
-
-@dataclass
-class Opportunity:
-    source: object
-    target: object
-    summary: object
 
 # Resolvers -------------------------------------------
 
@@ -216,6 +174,9 @@ class MockResolvers:
             assetCategory = "ANYY",
             currency = "USD",
             amount = 100_000,
+            timestamp = 15000,
+            status = True,
+            gCaseId = None,
         )
         return [
             Route(
@@ -228,11 +189,13 @@ class MockResolvers:
                         fxRate = 1.23,
                         timeTakenMinutes = round(1.25 * 24 * 60),
                         crossBorder = True,
+                        charge = 10.0,
                     ),
                 ],
                 risk = "MD",
                 totalFee = 10_000,
                 totalTimeMinutes = round(1.25 * 24 * 60),
+                success = True,
             ),
         ]
     
@@ -281,31 +244,72 @@ class MockResolvers:
                 ),
             ],
         )
+    
+    def payments(self):
+        return [
+            Payment(
+                originBic = "FOOOBIC1",
+                destinationBic = "FOOBRBIC2",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 200_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
+            ),
+            Payment(
+                originBic = "FOOOBIC3",
+                destinationBic = "FOOBRBIC4",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 300_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
+            ),
+            Payment(
+                originBic = "FOOOBIC5",
+                destinationBic = "FOOBRBIC6",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 400_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
+            ),
+            Payment(
+                originBic = "FOOOBIC7",
+                destinationBic = "FOOBRBIC8",
+                assetCategory = "ANYY",
+                currency = "USD",
+                amount = 500_000,
+                timestamp = 15000,
+                status = True,
+                gCaseId = None,
+            ),
+        ]
 
 class DatasetsResolvers:
     
-    def __init__(self, datasets = Datasets(_data_dir)):
+    def __init__(self, datasets = Datasets(
+        data_dir = _data_dir,
+        generator = _generator,
+        num_payments = _num_payments,
+    )):
         self._d = datasets
     
-    def _fb(self):
-        return Party(
-            bdp = "BD0000000B8A",
-            bic = "FOOBRBIC",
-            name = "Foo Bar Corp.",
-            countryCode = "FB",
-            countryName = "Foo Bar Republic",
-            city = "Fooburg",
-        )
-    
     def _parties(self, df):
-        return list(df.apply(lambda x: Party(
-            bdp = x['RECORD KEY'],
-            bic = x['BIC'],
-            name = x['INSTITUTION NAME'],
-            countryCode = x['ISO COUNTRY CODE'],
-            countryName = x['COUNTRY NAME'],
-            city = x['CITY'],
-        ), axis = 1))
+        if len(df) == 0:
+            return []
+        else:
+            return list(df.apply(lambda x: Party(
+                bdp = x['RECORD KEY'],
+                bic = x['BIC'],
+                name = x['INSTITUTION NAME'],
+                countryCode = x['ISO COUNTRY CODE'],
+                countryName = x['COUNTRY NAME'],
+                city = x['CITY'],
+            ), axis = 1))
     
     def _parties_by_bdps(self, bdps):
         return self._parties(self._d.bdp[
@@ -313,10 +317,14 @@ class DatasetsResolvers:
         ])
     
     def _client_party(self):
-        return self._parties_by_bdps([ self._d.client_bdp_rk ])[0]
+        # return self._parties_by_bdps([ _generator.client_bdp_rk ])[0]
+        return _generator.client_party
 
     def _client_banks(self):
-        client_neighbors = nx.neighbors(self._d.ssi_nx, self._d.client_bdp_rk)
+        client_neighbors = nx.neighbors(
+            self._d.with_client_ssi_nx,
+            _generator.client_bdp_rk,
+        )
         return self._parties_by_bdps(client_neighbors)
 
     def _client_destinations(self):
@@ -327,7 +335,7 @@ class DatasetsResolvers:
             'ACCOUNT NBR WITH ACCOUNT HOLDING INSTITUTION',
         ]][
             lambda x: x['RECORD KEY BDP ACCOUNT HOLDING INSTITUTION'].isin(
-                self._d.destination_dbp_rks
+                _generator.destination_dbp_rks
             )
         ].drop_duplicates().rename(columns = {
             'RECORD KEY BDP ACCOUNT HOLDING INSTITUTION' : 'RECORD KEY',
@@ -362,77 +370,155 @@ class DatasetsResolvers:
         )
     
     def routes(self, payment):
-        pmt = Payment(
-            originBic = "FOOBRBIC",
-            destinationBic = "FOOBRBIC",
-            assetCategory = "ANYY",
-            currency = "USD",
-            amount = 100_000,
-        )
-        return [
-            Route(
-                originalPayment = pmt,
-                hops = [
-                    Hop(
-                        source = self._fb(),
-                        target = self._fb(),
-                        payment = pmt,
-                        fxRate = 1.23,
-                        timeTakenMinutes = round(1.25 * 24 * 60),
-                        crossBorder = True,
-                    ),
-                ],
-                risk = "MD",
-                totalFee = 10_000,
-                totalTimeMinutes = round(1.25 * 24 * 60),
-            ),
-        ]
+        routes = self._d.generate_routes(payment)
+        for route in routes:
+            for hop in route.hops:
+                source = self._parties_by_bdps([ hop.source ])
+                hop.source = source[0] if len(source) > 0 else self._client_party()
+                hop.target = self._parties_by_bdps([ hop.target ])[0]
+        return routes
+    
+    def risk2num(self, risk):
+        return {
+            'LO' : 1,
+            'MD' : 2,
+            'HI' : 3,
+        }[risk]
     
     def stats(self):
-        return Stats(
-            summary = Summary(
-                 totalVolume = 100_000_000,
-                 averageTimeMinutes = round(1.65 * 24 * 60),
-                 pctFailures = 0.03,
+        payments = self._d.payments_history
+        routes = self._d.routes_history
+
+        log("stats: calculating summary")
+        total_volume = sum([payment.amount for payment in payments])
+        average_time_minutes = sum([route.totalTimeMinutes for route in routes]) / len(routes)
+        pct_failures = sum([1 for route in routes if not route.success]) / len(routes)
+        risk_level = ['LO','MD','HI'][round(sum([self.risk2num(route.risk) for route in routes]) / len(routes))]
+
+        log("stats: calculating map edges")
+        country = self._d.country.assign(
+            country = lambda x: x.apply(lambda y: {
+                'code2': y['ISO COUNTRY CODE'],
+                'code3': y['code'],
+                'risk': y['riskClassificationNumeric'],
+                'name': y['name'],
+            }, axis = 1)
+        )[['ISO COUNTRY CODE', 'country']]
+        payment_bdps = pd.DataFrame.from_records(
+            [ (payment.originBic, payment.destinationBic, payment.amount) for payment in payments ],
+            columns = ['source_bdp', 'target_bdp', 'amount'],
+        ).merge(
+            self._d.bdp[['RECORD KEY', 'ISO COUNTRY CODE']],
+            left_on = 'source_bdp',
+            right_on = 'RECORD KEY',
+        ).merge(
+            self._d.bdp[['RECORD KEY', 'ISO COUNTRY CODE']],
+            left_on = 'target_bdp',
+            right_on = 'RECORD KEY',
+            suffixes = (' of SOURCE', ' of TARGET')
+        )[[
+            'ISO COUNTRY CODE of SOURCE',
+            'ISO COUNTRY CODE of TARGET',
+            'amount',
+        ]].groupby(['ISO COUNTRY CODE of SOURCE', 'ISO COUNTRY CODE of TARGET']).sum().reset_index().merge(
+            country,
+            left_on = 'ISO COUNTRY CODE of SOURCE',
+            right_on = 'ISO COUNTRY CODE',
+        ).merge(
+            country,
+            left_on = 'ISO COUNTRY CODE of TARGET',
+            right_on = 'ISO COUNTRY CODE',
+            suffixes = ('Source', 'Target'),
+        ).drop(columns = ['ISO COUNTRY CODESource', 'ISO COUNTRY CODETarget'])
+        map_edges = payment_bdps.apply(
+            lambda x: MapEdge(
+                x['countrySource'],
+                x['countryTarget'],
+                x['amount'],
             ),
-            map = [
-                MapEdge(
-                    sourceCity = "Singapore",
-                    targetCity = "New York",
-                    weight = 100,
-                ),
-                MapEdge(
-                    sourceCity = "London",
-                    targetCity = "Cape Town",
-                    weight = 100,
-                ),
-                MapEdge(
-                    sourceCity = "Saint-Petersburg",
-                    targetCity = "Frankfurt",
-                    weight = 100,
-                ),
+            axis = 1
+        ).values        
+#         source_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.originBic for payment in payments ]) }
+#         target_parties = { party.bdp : party.city for party in self._parties_by_bdps([ payment.destinationBic for payment in payments ]) }
+#         source_cities = [ source_parties[payment.originBic] if payment.originBic in source_parties else None for payment in payments ]
+#         target_cities = [ target_parties[payment.destinationBic] if payment.destinationBic in target_parties else None for payment in payments ]
+#         weights = [ route.originalPayment.amount for route in routes ]
+#         log("stats: making map edges df")
+#         map_edges = pd.DataFrame.from_records(
+#             zip(source_cities, target_cities, weights),
+#             columns = [ 'source_city', 'target_city', 'weight' ]
+#         ).dropna().groupby([ 'source_city', 'target_city' ]).sum().reset_index().apply(
+#             lambda x: MapEdge(x['source_city'], x['target_city'], x['weight']),
+#             axis = 1
+#         ).values
+
+        log("stats: calculating opportunities")
+        opportunities = pd.DataFrame.from_records(
+            [ (route.originalPayment.originBic, route.originalPayment.destinationBic, 
+               route.totalTimeMinutes, route.success
+              ) for route in routes ],
+            columns = [ 'source_bdp', 'target_bdp', 'time_minutes', 'success' ]
+        ).assign(
+            failure = lambda x: np.where(x['success'], 0.0, 1.0)
+        ).groupby([ 'source_bdp', 'target_bdp' ]).agg({
+            'time_minutes' : [('average_time_minutes', 'mean')],
+            'failure' : [
+                 ('total_failures', 'sum'),
+                 ('count_failures', 'count')
             ],
-            opportunities = [
-                Opportunity(
-                    source = self._fb(),
-                    target = self._fb(),
-                    summary = Summary(
-                         totalVolume = 100_000,
-                         averageTimeMinutes = round(0.65 * 24 * 60),
-                         pctFailures = 0.07,
-                    ),
-                ),
-                Opportunity(
-                    source = self._fb(),
-                    target = self._fb(),
-                    summary = Summary(
-                         totalVolume = 1_000_000,
-                         averageTimeMinutes = round(2.65 * 24 * 60),
-                         pctFailures = 0.01,
-                    ),
-                ),
-            ],
+        }).reset_index()
+        opportunities.columns = [
+            'source_bdp', 'target_bdp', 'average_time_minutes', 'total_failures', 'count_failures'
+        ]
+        opportunities = opportunities.assign(
+            pct_failures = lambda x: x['total_failures'] / x['count_failures'] * 100
         )
+        log("stats: making opportunities df")
+        opportunities = opportunities.merge(
+            pd.DataFrame.from_records(
+                [ (payment.originBic, payment.destinationBic, payment.amount) for payment in payments ],
+                columns = [ 'source_bdp', 'target_bdp', 'total_amount' ]
+            ).groupby([ 'source_bdp', 'target_bdp' ]).sum().reset_index(),
+            on = ('source_bdp', 'target_bdp')
+        )[[
+            'source_bdp', 'target_bdp', 'total_amount', 'average_time_minutes', 'pct_failures'
+        ]].apply(
+            lambda x: Opportunity(
+                self._parties_by_bdps([x['source_bdp']])[0],
+                self._parties_by_bdps([x['target_bdp']])[0],
+                Summary(
+                    x['total_amount'],
+                    round(x['average_time_minutes']),
+                    x['pct_failures'],
+                    _generator.r.choice([
+                        'HI','HI','HI','HI','HI','HI',
+                        'MD','MD','MD','MD',
+                        'LO',
+                    ]),
+                )
+            ),
+            axis = 1
+        ).values        
+        
+        stats = Stats(
+            summary = Summary(
+                 totalVolume = total_volume,
+                 averageTimeMinutes = round(average_time_minutes),
+                 pctFailures = pct_failures,
+                 riskLevel = risk_level,
+            ),
+            map = map_edges,
+            opportunities = opportunities,
+        )
+        log("stats: returning", stats)
+        return stats
+    
+    def payments(self, fromIdx, toIdx):
+        if fromIdx is None:
+            fromIdx = 0
+        if toIdx is None:
+            toIdx = len(self._d.payments_history)
+        return self._d.payments_history[fromIdx:toIdx]
     
 # Binding   -------------------------------------------
 
@@ -444,20 +530,35 @@ _query = ObjectType("Query")
 @_query.field("staticData")
 def resolve_staticData(_, info):
     obj = _resolvers.staticData()
-    print("returning", obj)
+    log("returning", obj)
     return obj
 
 @_query.field("routes")
 def resolve_routes(_, info, payment):
-    print("routes requested for payment =", payment)
-    obj = _resolvers.routes(payment)
-    print("returning", obj)
+    log("routes requested for payment =", payment)
+    obj = _resolvers.routes(Payment(
+        originBic = payment['originBic'],
+        destinationBic = payment['destinationBic'],
+        assetCategory = payment['assetCategory'],
+        currency = payment['currency'],
+        amount = payment['amount'],
+        timestampMinutes = 0,
+        status = True,
+        gCaseId = None,
+    ))
+    log("returning", obj)
     return obj
 
 @_query.field("stats")
 def resolve_stats(_, info):
     obj = _resolvers.stats()
-    print("returning", obj)
+    log("returning", obj)
+    return obj
+
+@_query.field("payments")
+def resolve_payments(_, info, fromIdx, toIdx):
+    obj = _resolvers.payments(fromIdx, toIdx)
+    log("returning", obj)
     return obj
 
 schema = make_executable_schema(sdl, [ _query, fallback_resolvers ])
